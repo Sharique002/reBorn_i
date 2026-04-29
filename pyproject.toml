@@ -2,7 +2,7 @@
 # Production-ready AI system for career reinvention.
 
 [project]
-name = "reborn-i"
+name = "reborni"
 version = "1.0.0"
 description = "From Rejection to Reinvention — AI-powered career intelligence platform"
 requires-python = ">=3.11"
