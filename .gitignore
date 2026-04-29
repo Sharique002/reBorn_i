@@ -1,0 +1,61 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# Test / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
+
+# Uploaded files
+uploads/
+
+# Frontend
+node_modules/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+frontend/.env
+frontend/.vite/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Debug files
+debug_*.py
+test_api_call.py
+
+# Sensitive test files
+_login.json

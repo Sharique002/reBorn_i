@@ -1,0 +1,26 @@
+# reBorn_i — Not a Resume Helper. From Rejection to Reinvention.
+# Production-ready AI system for career reinvention.
+
+[project]
+name = "reborn-i"
+version = "1.0.0"
+description = "From Rejection to Reinvention — AI-powered career intelligence platform"
+requires-python = ">=3.11"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

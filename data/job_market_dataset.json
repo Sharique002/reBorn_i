@@ -1,0 +1,22 @@
+[
+  {"title": "Senior Software Engineer", "skills": ["python", "aws", "docker", "kubernetes", "postgresql", "fastapi", "react", "git", "ci/cd", "microservices", "system design", "agile"], "level": "senior", "industry": "tech", "company_size": "large"},
+  {"title": "Full Stack Developer", "skills": ["javascript", "typescript", "react", "node.js", "postgresql", "docker", "git", "aws", "graphql", "rest", "agile", "mongodb"], "level": "mid", "industry": "tech", "company_size": "startup"},
+  {"title": "Data Scientist", "skills": ["python", "machine learning", "tensorflow", "pandas", "numpy", "sql", "deep learning", "nlp", "scikit-learn", "data analysis", "tableau", "r"], "level": "mid", "industry": "tech", "company_size": "large"},
+  {"title": "DevOps Engineer", "skills": ["docker", "kubernetes", "terraform", "aws", "jenkins", "ci/cd", "python", "bash", "prometheus", "grafana", "ansible", "helm"], "level": "senior", "industry": "tech", "company_size": "large"},
+  {"title": "Frontend Developer", "skills": ["javascript", "typescript", "react", "vue", "git", "figma", "rest", "agile", "next.js", "svelte"], "level": "mid", "industry": "tech", "company_size": "mid"},
+  {"title": "Backend Engineer", "skills": ["python", "java", "spring", "postgresql", "redis", "docker", "aws", "microservices", "rest", "git", "kafka", "grpc"], "level": "senior", "industry": "fintech", "company_size": "large"},
+  {"title": "ML Engineer", "skills": ["python", "pytorch", "tensorflow", "docker", "aws", "kubernetes", "deep learning", "data engineering", "sql", "spark", "mlops"], "level": "senior", "industry": "tech", "company_size": "large"},
+  {"title": "Cloud Architect", "skills": ["aws", "azure", "gcp", "terraform", "kubernetes", "docker", "microservices", "system design", "python", "networking"], "level": "lead", "industry": "consulting", "company_size": "large"},
+  {"title": "Product Manager", "skills": ["agile", "jira", "data analysis", "communication", "leadership", "stakeholder management", "project management", "sql", "figma", "scrum"], "level": "senior", "industry": "tech", "company_size": "mid"},
+  {"title": "AI Engineer", "skills": ["python", "llm", "langchain", "generative ai", "fastapi", "docker", "aws", "pytorch", "nlp", "api design", "vector databases"], "level": "senior", "industry": "tech", "company_size": "startup"},
+  {"title": "Junior Developer", "skills": ["python", "javascript", "git", "sql", "react", "rest", "agile", "docker"], "level": "junior", "industry": "tech", "company_size": "startup"},
+  {"title": "Data Engineer", "skills": ["python", "sql", "spark", "airflow", "aws", "docker", "postgresql", "etl", "data engineering", "kafka", "dbt"], "level": "mid", "industry": "tech", "company_size": "large"},
+  {"title": "SRE / Platform Engineer", "skills": ["kubernetes", "docker", "aws", "terraform", "prometheus", "grafana", "python", "bash", "ci/cd", "elasticsearch", "datadog"], "level": "senior", "industry": "tech", "company_size": "large"},
+  {"title": "Mobile Developer", "skills": ["react native", "flutter", "javascript", "typescript", "swift", "kotlin", "git", "rest", "agile", "firebase"], "level": "mid", "industry": "tech", "company_size": "mid"},
+  {"title": "Security Engineer", "skills": ["python", "aws", "docker", "kubernetes", "bash", "terraform", "ci/cd", "git", "networking", "cryptography"], "level": "senior", "industry": "fintech", "company_size": "large"},
+  {"title": "QA / Test Engineer", "skills": ["python", "javascript", "selenium", "git", "ci/cd", "agile", "rest", "jira", "tdd", "docker"], "level": "mid", "industry": "tech", "company_size": "mid"},
+  {"title": "Technical Writer", "skills": ["communication", "git", "jira", "confluence", "agile", "api design", "rest", "markdown"], "level": "mid", "industry": "tech", "company_size": "large"},
+  {"title": "Solutions Architect", "skills": ["aws", "azure", "system design", "microservices", "docker", "kubernetes", "python", "terraform", "communication", "leadership"], "level": "lead", "industry": "consulting", "company_size": "large"},
+  {"title": "Blockchain Developer", "skills": ["solidity", "javascript", "python", "docker", "git", "rest", "cryptography", "react", "node.js", "aws"], "level": "senior", "industry": "fintech", "company_size": "startup"},
+  {"title": "Game Developer", "skills": ["c++", "c#", "python", "git", "agile", "docker", "system design", "mathematics"], "level": "mid", "industry": "gaming", "company_size": "mid"}
+]

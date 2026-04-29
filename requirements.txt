@@ -1,0 +1,56 @@
+# ──────────────────────────────────────────────
+# reBorn_i — Core Dependencies
+# ──────────────────────────────────────────────
+
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+
+# AI / ML
+openai==1.58.1
+sentence-transformers==3.3.1
+scikit-learn==1.6.1
+numpy==1.26.4
+matplotlib==3.9.3
+
+# PDF Processing
+PyPDF2==3.0.1
+pdfplumber==0.11.4
+
+# Auth & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+google-auth==2.38.0
+
+# Validation & Serialization
+pydantic==2.10.4
+pydantic-settings==2.7.1
+email-validator==2.3.0
+
+# Caching
+cachetools==5.5.0
+
+# Logging
+structlog==24.4.0
+
+# Retry Logic
+tenacity==9.0.0
+
+# HTTP Client
+httpx==0.28.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+
+# Dev Tools
+black==24.10.0
+isort==5.13.2
+mypy==1.14.1
