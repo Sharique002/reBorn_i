@@ -254,8 +254,8 @@ export default function UserProfile() {
                                     <Link key={to} to={to}
                                         className="flex items-center gap-3 p-3 rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-md"
                                         style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = color; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
+                                        onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = color; }}
+                                        onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
                                         <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
                                             style={{ background: `${color}15` }}>
                                             <Icon className="w-4 h-4" style={{ color }} />
@@ -507,8 +507,8 @@ export default function UserProfile() {
                                             <Link key={to} to={to}
                                                 className="flex items-center gap-3 p-4 rounded-2xl border transition-all hover:-translate-y-0.5 hover:shadow-md"
                                                 style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}
-                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = color; }}
-                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
+                                                onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = color; }}
+                                                onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
                                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                                                     style={{ background: `${color}15` }}>
                                                     <Icon className="w-5 h-5" style={{ color }} />

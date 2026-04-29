@@ -88,20 +88,20 @@ export default function LandingPage() {
                     </div>
                     <nav className="hidden md:flex items-center gap-6">
                         <a href="#features" className="text-sm font-semibold transition-colors" style={{ color: 'var(--text-secondary)' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>Features</a>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--accent)')}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--text-secondary)')}>Features</a>
                         <a href="#how-it-works" className="text-sm font-semibold transition-colors" style={{ color: 'var(--text-secondary)' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>How it Works</a>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--accent)')}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--text-secondary)')}>How it Works</a>
                         <a href="#stats" className="text-sm font-semibold transition-colors" style={{ color: 'var(--text-secondary)' }}
-                            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
-                            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>About</a>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--accent)')}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => (e.currentTarget.style.color = 'var(--text-secondary)')}>About</a>
                     </nav>
                     <div className="flex items-center gap-3">
                         <Link to="/login" className="text-sm font-bold px-4 py-2 rounded-xl transition-all"
                             style={{ color: 'var(--text)', border: '2px solid var(--border)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = 'var(--text)'; }}>
                             Sign in
                         </Link>
                         <Link to="/register" className="text-sm font-bold px-4 py-2 rounded-xl text-white transition-all"
@@ -152,15 +152,15 @@ export default function LandingPage() {
                         <Link to="/register"
                             className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-bold text-lg transition-all"
                             style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)', boxShadow: '0 8px 32px rgba(245,166,35,0.35)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(245,166,35,0.45)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(245,166,35,0.35)'; }}>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(245,166,35,0.45)'; }}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(245,166,35,0.35)'; }}>
                             <Zap className="w-5 h-5" /> Start Free — No Credit Card
                         </Link>
                         <Link to="/login"
                             className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg transition-all"
                             style={{ background: 'rgba(255,255,255,0.8)', border: '2px solid var(--border)', color: 'var(--text)', backdropFilter: 'blur(8px)' }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
+                            onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--accent)'; }}
+                            onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
                             Sign In <ArrowRight className="w-5 h-5" />
                         </Link>
                     </motion.div>
@@ -364,15 +364,15 @@ export default function LandingPage() {
                                 <Link to="/register"
                                     className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-white font-bold text-lg transition-all"
                                     style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)', boxShadow: '0 8px 32px rgba(245,166,35,0.35)' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}>
+                                    onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}>
                                     <Star className="w-5 h-5" /> Get Started Free
                                 </Link>
                                 <Link to="/login"
                                     className="text-sm font-bold transition-all"
                                     style={{ color: 'var(--text-secondary)' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}>
+                                    onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.color = 'var(--accent)'; }}
+                                    onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'; }}>
                                     Already have an account? Sign in →
                                 </Link>
                             </div>
