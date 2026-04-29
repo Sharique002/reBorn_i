@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm run build",
-  "installCommand": "cd frontend && npm install",
-  "outputDirectory": "frontend/dist",
+  "cli": {
+    "regions": ["iad1"]
+  },
+  "buildCommand": "cd $VERCEL_ROOT/frontend && npm run build",
+  "installCommand": "cd $VERCEL_ROOT/frontend && npm install",
+  "outputDirectory": "$VERCEL_ROOT/frontend/dist",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",

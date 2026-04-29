@@ -1,0 +1,10 @@
+# Ignore Python backend - Vercel deploys frontend only
+app/
+*.py
+pyproject.toml
+requirements.txt
+.venv/
+tests/
+docker/
+data/
+*.db
