@@ -28,6 +28,7 @@ google-auth==2.38.0
 pydantic==2.10.4
 pydantic-settings==2.7.1
 email-validator==2.3.0
+pydantic-core==2.27.2
 
 # Caching
 cachetools==5.5.0
