@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────
-# reBorn_i — Core Dependencies
+# reBorn_i — Production Dependencies (Lightweight)
 # ──────────────────────────────────────────────
 
 # Web Framework
@@ -10,13 +10,10 @@ python-multipart==0.0.20
 # Database
 sqlalchemy[asyncio]==2.0.36
 asyncpg==0.30.0
+aiosqlite==0.20.0
 
-# AI / ML
+# AI / LLM (API-based only — no local models)
 openai==1.58.1
-sentence-transformers==3.3.1
-scikit-learn==1.6.1
-numpy==1.26.4
-matplotlib==3.9.3
 
 # PDF Processing
 PyPDF2==3.0.1
@@ -44,13 +41,3 @@ tenacity==9.0.0
 
 # HTTP Client
 httpx==0.28.1
-
-# Testing
-pytest==8.3.4
-pytest-asyncio==0.25.0
-pytest-cov==6.0.0
-
-# Dev Tools
-black==24.10.0
-isort==5.13.2
-mypy==1.14.1

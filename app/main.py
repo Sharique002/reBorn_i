@@ -102,6 +102,17 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ── Root Endpoints (deployment health checks) ─────────
+    @app.get("/")
+    async def root():
+        """Root endpoint for basic connectivity check."""
+        return {"status": "running", "app": "reBorn_i", "version": settings.APP_VERSION}
+
+    @app.get("/health")
+    async def root_health():
+        """Root health check for Render/load balancer probes."""
+        return {"status": "ok"}
+
     # ── Register Routers ────────────────────────────────────
     prefix = settings.API_PREFIX
 

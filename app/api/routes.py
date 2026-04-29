@@ -919,14 +919,12 @@ async def simulate_hiring_pipeline_endpoint(request: HiringPipelineRequest):
             detail=e.message,
         )
     except Exception as e:
-        import traceback
-        logger.error("hiring_pipeline_endpoint_failed", error=str(e), traceback=traceback.format_exc())
+        logger.error("hiring_pipeline_endpoint_failed", error=str(e))
         return JSONResponse(
             status_code=500,
             content={
                 "error": "SimulationCrash",
-                "message": str(e),
-                "traceback": traceback.format_exc()
+                "message": "Hiring pipeline simulation failed. Please try again.",
             }
         )
 

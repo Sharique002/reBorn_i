@@ -13,7 +13,6 @@ LLM is used ONLY for the explanation layer, never for scoring.
 import json
 from typing import Any, Dict, Optional, Type
 
-from openai import AsyncOpenAI, APIError, APITimeoutError, RateLimitError
 from pydantic import BaseModel, ValidationError
 from tenacity import (
     retry,
@@ -21,6 +20,17 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
+
+# Lazy-import OpenAI to avoid startup crash if package is misconfigured
+try:
+    from openai import AsyncOpenAI, APIError, APITimeoutError, RateLimitError
+    _OPENAI_AVAILABLE = True
+except ImportError:
+    _OPENAI_AVAILABLE = False
+    AsyncOpenAI = None  # type: ignore
+    APIError = Exception  # type: ignore
+    APITimeoutError = Exception  # type: ignore
+    RateLimitError = Exception  # type: ignore
 
 from app.config.settings import get_settings
 from app.utils.exceptions import LLMError, LLMResponseValidationError
@@ -31,10 +41,18 @@ logger = get_logger(__name__)
 _client: Optional[AsyncOpenAI] = None
 
 
-def _get_client() -> AsyncOpenAI:
-    """Get or create the async OpenAI client."""
+def _get_client() -> "AsyncOpenAI":
+    """Get or create the async OpenAI client.
+
+    Raises LLMError if OpenAI is not available or not configured.
+    """
     global _client
     if _client is None:
+        if not _OPENAI_AVAILABLE:
+            raise LLMError(
+                message="OpenAI package is not available.",
+                details={"hint": "Install openai package."},
+            )
         settings = get_settings()
         if not settings.OPENAI_API_KEY:
             raise LLMError(
@@ -45,6 +63,7 @@ def _get_client() -> AsyncOpenAI:
             api_key=settings.OPENAI_API_KEY,
             timeout=settings.LLM_REQUEST_TIMEOUT,
         )
+        logger.info("llm_client_initialized", model=settings.OPENAI_MODEL, timeout=settings.LLM_REQUEST_TIMEOUT)
     return _client
 
 

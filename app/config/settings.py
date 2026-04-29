@@ -51,8 +51,9 @@ class Settings(BaseSettings):
     LLM_MAX_RETRIES: int = 3
 
     # ── Embedding ────────────────────────────────────────────
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    EMBEDDING_MODEL: str = "text-embedding-3-small"  # OpenAI model
     EMBEDDING_CACHE_TTL: int = 3600  # seconds
+    EMBEDDING_TIMEOUT: int = 5  # seconds — fail fast to keyword fallback
 
     # ── File Upload ──────────────────────────────────────────
     MAX_FILE_SIZE_MB: int = 10

@@ -23,8 +23,6 @@ Risk classification:
     70–100%→ Critical Risk
 """
 
-import base64
-import io
 import re
 from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -49,7 +47,7 @@ from app.config.scoring_weights import (
     NonTechRejectionWeights,
 )
 from app.schemas.schemas import RiskLayerScore, RejectionAnalysisResponse
-from app.utils.embeddings import compute_cosine_similarity, generate_embedding
+from app.utils.embeddings import compute_cosine_similarity, compute_similarity, generate_embedding
 from app.utils.exceptions import ScoringError
 from app.utils.llm_client import call_llm_structured
 from app.utils.logging import get_logger
@@ -547,13 +545,20 @@ def compute_experience_alignment_score(
 def compute_embedding_similarity_score(
     resume_text: str, jd_text: str
 ) -> float:
-    """Compute semantic similarity between resume and JD using embeddings."""
-    resume_embedding = generate_embedding(resume_text)
-    jd_embedding = generate_embedding(jd_text)
-    similarity = compute_cosine_similarity(resume_embedding, jd_embedding)
+    """Compute semantic similarity between resume and JD using embeddings.
 
-    logger.debug("embedding_similarity_computed", similarity=similarity)
-    return similarity
+    Uses the safe compute_similarity wrapper:
+    - Tries OpenAI embeddings first
+    - Falls back to keyword similarity on ANY failure
+    - NEVER crashes, NEVER blocks for more than 5 seconds
+    """
+    try:
+        similarity = compute_similarity(resume_text, jd_text)
+        logger.debug("embedding_similarity_computed", similarity=similarity)
+        return similarity
+    except Exception as e:
+        logger.warning("embedding_similarity_fallback_zero", error=str(e))
+        return 0.0
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1532,65 +1537,17 @@ def generate_risk_breakdown_chart(
     risk_breakdown: Dict[str, float],
     domain: str = "Tech",
     model_used: str = "TECH_MODEL",
-) -> str:
-    """Generate a bar chart of rejection risk breakdown using matplotlib.
+) -> Optional[str]:
+    """Chart generation placeholder.
 
-    X-axis: ATS, Recruiter, Market, Grammar, Formatting
-    Y-axis: 0–100
-    Title includes domain and model used.
+    Returns None — all numeric risk breakdown data is provided in the response
+    for client-side rendering. This avoids the heavyweight matplotlib dependency.
 
     Returns:
-        Base64-encoded PNG image string.
+        None (chart rendered client-side from numeric data).
     """
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    labels = ["ATS", "Recruiter", "Market", "Grammar", "Formatting"]
-    keys = [
-        "ats_screening",
-        "recruiter_evaluation",
-        "market_competitiveness",
-        "spelling_grammar",
-        "formatting_structure",
-    ]
-    values = [risk_breakdown.get(k, 0.0) * 100 for k in keys]
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    bars = ax.bar(labels, values)
-
-    ax.set_title(
-        f"Rejection Risk Breakdown — {domain} ({model_used})",
-        fontsize=14,
-        fontweight="bold",
-    )
-    ax.set_ylabel("Risk (%)", fontsize=12)
-    ax.set_ylim(0, 100)
-    ax.set_xlabel("")
-
-    for bar, val in zip(bars, values):
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0,
-            bar.get_height() + 1.5,
-            f"{val:.1f}%",
-            ha="center",
-            va="bottom",
-            fontsize=10,
-            fontweight="bold",
-        )
-
-    ax.grid(axis="y", alpha=0.3)
-    plt.tight_layout()
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=120, bbox_inches="tight")
-    plt.close(fig)
-    buf.seek(0)
-    encoded = base64.b64encode(buf.read()).decode("utf-8")
-
-    logger.debug("risk_breakdown_chart_generated", domain=domain)
-    return encoded
+    logger.debug("risk_breakdown_chart_skipped_lightweight_mode", domain=domain)
+    return None
 
 
 # ═══════════════════════════════════════════════════════════

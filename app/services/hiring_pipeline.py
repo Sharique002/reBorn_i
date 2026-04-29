@@ -16,16 +16,8 @@ Given precomputed risk values, the module:
    behavioral guidance, and confidence intervals
 """
 
-import base64
-import datetime
-import io
-import warnings
 from math import sqrt
 from typing import Any, Dict, List, Optional, Tuple
-
-import matplotlib
-matplotlib.use("Agg")  # Non-interactive backend for server use
-import matplotlib.pyplot as plt
 
 from app.utils.exceptions import HiringPipelineError
 from app.utils.logging import get_logger
@@ -185,50 +177,16 @@ def _generate_chart(
     recruiter_stage: float,
     market_stage: float,
     final_prob: float,
-) -> str:
-    """Generate a single matplotlib bar chart and return as base64-encoded PNG.
+) -> Optional[str]:
+    """Chart generation placeholder.
 
-    Rules enforced:
-    - matplotlib only (no seaborn)
-    - One bar chart only, no multiple plots
-    - No custom colors
-    - Y-axis 0–100
-    - Values converted to percentage
+    Returns None — chart data is provided as numeric values in the response
+    for client-side rendering. This avoids the heavyweight matplotlib dependency.
 
     Returns:
-        Base64-encoded PNG string.
+        None (chart rendered client-side from numeric data).
     """
-    labels = [
-        "ATS Survival",
-        "Recruiter Survival",
-        "Market Survival",
-        "Interview Probability",
-    ]
-    values = [
-        ats_stage * 100,
-        recruiter_stage * 100,
-        market_stage * 100,
-        final_prob * 100,
-    ]
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(labels, values)
-    ax.set_ylim(0, 100)
-    ax.set_ylabel("Probability (%)")
-    ax.set_title("Hiring Pipeline Survival Simulation")
-
-    # Add value labels on bars
-    for i, v in enumerate(values):
-        ax.text(i, v + 1.5, f"{v:.1f}%", ha="center", va="bottom", fontsize=9)
-
-    plt.tight_layout()
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=100)
-    plt.close(fig)
-    buf.seek(0)
-
-    return base64.b64encode(buf.read()).decode("utf-8")
+    return None
 
 
 # ═══════════════════════════════════════════════════════════
@@ -520,11 +478,6 @@ def simulate_hiring_pipeline(risk_data: dict) -> dict:
     except HiringPipelineError:
         raise
     except Exception as e:
-        import traceback
-        with open("crash_log.txt", "a") as f:
-            f.write(f"\n--- CRASH {datetime.datetime.now()} ---\n")
-            f.write(traceback.format_exc())
-            f.write("\n")
         logger.error("hiring_pipeline_simulation_failed", error=str(e))
         raise HiringPipelineError(
             message=f"Hiring pipeline simulation failed: {str(e)}",

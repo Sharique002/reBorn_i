@@ -1,24 +1,19 @@
-# Frontend (not needed for backend)
+# Frontend (deployed separately on Vercel)
 frontend/
 node_modules/
 
-# Dev files
+# Dev/build artifacts
 .git
 .gitignore
 .env
 .env.local
 .env.*.local
-
-# Documentation
-*.md
-docs/
-DEPLOYMENT_*.md
-
-# Testing
-.pytest_cache/
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
 .coverage
+.mypy_cache/
 
 # IDE
 .vscode/
@@ -29,5 +24,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Dev dependencies (use production requirements instead)
-requirements.txt
+# Dev database
+*.db
+
+# Documentation (not needed at runtime)
+*.md
