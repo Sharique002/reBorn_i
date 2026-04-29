@@ -25,9 +25,9 @@ bcrypt==4.0.1
 google-auth==2.38.0
 
 # Validation & Serialization
-pydantic==2.10.4
-pydantic-settings==2.7.1
-email-validator==2.3.0
+pydantic==2.6.0
+pydantic-settings==2.2.1
+email-validator==2.1.0
 
 # Caching
 cachetools==5.5.0
