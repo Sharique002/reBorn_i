@@ -1,0 +1,33 @@
+# Frontend (not needed for backend)
+frontend/
+node_modules/
+
+# Dev files
+.git
+.gitignore
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+docs/
+DEPLOYMENT_*.md
+
+# Testing
+.pytest_cache/
+__pycache__/
+*.pyc
+.coverage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dev dependencies (use production requirements instead)
+requirements.txt

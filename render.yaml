@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: reborni-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements-prod.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+
+databases:
+  - name: reborni-postgres
+    region: oregon
+    plan: free
+    databaseName: reborni_db
