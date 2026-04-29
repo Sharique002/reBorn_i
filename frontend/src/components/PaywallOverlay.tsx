@@ -31,15 +31,6 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, type: 'spring', stiffness: 100, damping: 15 },
-  },
-};
-
 export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
   const { startPayment, error, clearError } = useSubscription();
   const [showError, setShowError] = useState(false);
@@ -72,7 +63,9 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
       >
         {/* Lock Icon */}
         <motion.div
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
           className="flex justify-center mb-4"
         >
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-warm-100 to-amber-100 flex items-center justify-center">
@@ -81,7 +74,12 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
         </motion.div>
 
         {/* Title */}
-        <motion.div variants={itemVariants} className="text-center mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="text-center mb-2"
+        >
           <h3 className="text-xl font-display font-bold text-bark">
             Unlock Full Hiring Report
           </h3>
@@ -89,14 +87,21 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
 
         {/* Subtitle */}
         <motion.p
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
           className="text-sm text-dusk text-center mb-5 leading-relaxed"
         >
           See exactly why you're getting rejected and get personalized improvement strategies.
         </motion.p>
 
         {/* Features List */}
-        <motion.div variants={itemVariants} className="space-y-3 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          className="space-y-3 mb-6"
+        >
           {premiumFeatures.map((feature, idx) => (
             <motion.div
               key={idx}
@@ -115,7 +120,9 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
 
         {/* Price Section */}
         <motion.div
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.4 }}
           className="bg-gradient-to-r from-warm-50 to-amber-50 rounded-2xl p-4 mb-5 border border-warm-200"
         >
           <div className="text-center">
@@ -142,7 +149,11 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
         )}
 
         {/* Unlock Button */}
-        <motion.div variants={itemVariants}>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+        >
           <AnimatedButton
             onClick={handleUnlock}
             loading={isProcessing}
@@ -161,7 +172,9 @@ export function PaywallOverlay({ isProcessing = false }: PaywallOverlayProps) {
 
         {/* Footer Text */}
         <motion.p
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.6 }}
           className="text-[10px] text-dusk text-center mt-4"
         >
           Secure payment powered by <span className="font-semibold">Razorpay</span>
