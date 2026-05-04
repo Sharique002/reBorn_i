@@ -2,209 +2,196 @@
 
 **Not a Resume Helper. From Rejection to Reinvention.**
 
-reBorn_i is a production-ready AI career reinvention platform that transforms rejection into actionable intelligence. It combines deterministic scoring with an optional LLM explanation layer to deliver reproducible career analytics.
+---
+
+## What is reBorn_i?
+
+reBorn_i is a **production-ready AI career reinvention platform** that transforms rejection into actionable intelligence. It combines **deterministic scoring** with an optional **LLM explanation layer** to deliver reproducible career analytics.
+
+Upload your resume, paste a job description, and get:
+
+- **5-Layer Rejection Risk Score** — deterministic, domain-aware (Tech vs Non-Tech)
+- **Hiring Pipeline Survival Probability** — sequential elimination model
+- **Market Intelligence** — real-time skill demand analysis
+- **Career Simulation** — "what-if" skill modification impact
+- **Reinvention Blueprints** — 30/90-day action plans
+- **Interview Readiness** — preparation guidance
+- **Application Tracking** — job application management
+
+> **Key principle:** Scores are 100% deterministic. LLM is used *only* for human-readable explanations — never for computation. If the LLM is unavailable, scores remain fully valid.
 
 ---
-backend :- .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
-frontend :- cd frontend && npm run dev
 
-**⚠️ IMPORTANT**: If you see "The given origin is not allowed" error:
-- See [GOOGLE_OAUTH_QUICKFIX.md](GOOGLE_OAUTH_QUICKFIX.md) for 5-minute fix
-- See [GOOGLE_OAUTH_TEST.md](GOOGLE_OAUTH_TEST.md) for diagnostic tests
-
----
+## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Core Modules](#core-modules)
-3. [Rejection Risk Engine — Deep Dive](#rejection-risk-engine--deep-dive)
-4. [Project Structure](#project-structure)
-5. [Quick Start](#quick-start)
-6. [Environment Variables](#environment-variables)
-7. [API Documentation](#api-documentation)
-8. [Testing](#testing)
-9. [Docker Deployment](#docker-deployment)
-10. [Design Principles](#design-principles)
+2. [Tech Stack](#tech-stack)
+3. [Core Modules](#core-modules)
+4. [Rejection Risk Engine — Deep Dive](#rejection-risk-engine--deep-dive)
+5. [Project Structure](#project-structure)
+6. [Quick Start](#quick-start)
+7. [Environment Variables](#environment-variables)
+8. [API Documentation](#api-documentation)
+9. [Frontend Pages](#frontend-pages)
+10. [Deployment](#deployment)
+11. [Security](#security)
+12. [Design Principles](#design-principles)
+13. [License](#license)
 
 ---
 
 ## Architecture Overview
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│                        FastAPI  (async)                        │
-│  /api/v1/auth  ·  /resume  ·  /analysis  ·  /market  ·  …      │
-├────────────────────────────────────────────────────────────────┤
-│                      Service Layer                             │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────┐  │
-│  │ Resume   │ │Rejection │ │ Market   │ │ Career   │ │Blue- │  │
-│  │Processor │ │  Engine  │ │  Radar   │ │Simulation│ │print │  │
-│  │  (A)     │ │  (B)     │ │  (C)     │ │  (D)     │ │ (E)  │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────┘  │
-├────────────────────────────────────────────────────────────────┤
-│                     Shared Utilities                           │
-│  embeddings · llm_client · security · logging · exceptions     │
-├────────────────────────────────────────────────────────────────┤
-│                     Data Layer                                 │
-│  SQLAlchemy 2.0 (async) ──► PostgreSQL  │  Redis (cache)       │
-└────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Frontend (React + TypeScript)                    │
+│  Vite · TailwindCSS · Framer Motion · Recharts · React Router       │
+│  Deployed on: Vercel (https://re-born-i.vercel.app)                 │
+├─────────────────────────────────────────────────────────────────────┤
+│                     API Gateway (FastAPI async)                      │
+│  /auth · /resume · /analysis · /market · /simulation · /blueprint   │
+│  /hiring-pipeline · /payment · /health                              │
+│  Deployed on: Render (https://reborni-backend.onrender.com)         │
+├─────────────────────────────────────────────────────────────────────┤
+│                        Service Layer                                │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │ Resume   │ │Rejection │ │ Market   │ │ Career   │ │Blueprint │  │
+│  │Processor │ │ Engine   │ │ Radar    │ │Simulation│ │Generator │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+│  ┌──────────┐ ┌──────────┐                                         │
+│  │ Hiring   │ │ Payment  │                                         │
+│  │ Pipeline │ │ Service  │                                         │
+│  └──────────┘ └──────────┘                                         │
+├─────────────────────────────────────────────────────────────────────┤
+│                      Shared Utilities                               │
+│  embeddings · llm_client · security · logging · exceptions          │
+├─────────────────────────────────────────────────────────────────────┤
+│                       Data Layer                                    │
+│  SQLAlchemy 2.0 (async) → PostgreSQL (prod) / SQLite (dev)          │
+│  OpenAI Embeddings API (with keyword-based fallback)                │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key design decisions:**
+---
 
-- **Deterministic scoring** — all risk scores, demand indices, and match scores use embeddings + cosine similarity + weighted formulas. No randomness. The same inputs always produce the same outputs.
-- **Domain-aware rejection engine** — auto-detects Tech vs Non-Tech domains and applies the corresponding scoring model (`TECH_MODEL` / `NON_TECH_MODEL`) with domain-specific sub-weights.
-- **LLM as explanation layer only** — OpenAI (gpt-4o) is called *only* to generate human-readable explanations and action plans. LLM must **NOT** calculate the risk. LLM may only generate explanation **after** deterministic scoring. If the LLM is unavailable, the system falls back to template-based responses. Scores are never affected.
-- **Copy-based simulation** — career simulation never mutates the original resume data. All modifications operate on copies.
-- **Dual-strategy PDF extraction** — pdfplumber (primary) with PyPDF2 fallback for maximum extraction reliability.
+## Tech Stack
+
+### Backend
+| Technology | Purpose |
+|---|---|
+| **FastAPI** | Async web framework with auto-generated OpenAPI docs |
+| **SQLAlchemy 2.0** | Async ORM with `Mapped` type annotations |
+| **PostgreSQL / SQLite** | Production (asyncpg) / Development (aiosqlite) |
+| **Pydantic v2** | Request/response validation and settings management |
+| **OpenAI API** | Embeddings (text-embedding-3-small) + LLM explanations (gpt-4o) |
+| **structlog** | Structured JSON logging with PII sanitization |
+| **python-jose** | JWT token creation and validation |
+| **passlib + bcrypt** | Password hashing |
+| **google-auth** | Google OAuth ID token verification |
+| **tenacity** | Retry logic with exponential backoff |
+| **pdfplumber + PyPDF2** | Dual-strategy PDF text extraction |
+| **Razorpay** | Payment processing for subscription upgrades |
+
+### Frontend
+| Technology | Purpose |
+|---|---|
+| **React 18** | UI framework with hooks |
+| **TypeScript** | Type-safe development |
+| **Vite** | Build tool and dev server |
+| **TailwindCSS** | Utility-first styling |
+| **Framer Motion** | Animations and transitions |
+| **Recharts** | Data visualization charts |
+| **React Router v7** | Client-side routing |
+| **Axios** | HTTP client with interceptors |
+| **Zustand** | Lightweight state management |
+| **Lucide React** | Icon library |
+
+### Infrastructure
+| Service | Purpose |
+|---|---|
+| **Vercel** | Frontend hosting with SPA routing |
+| **Render** | Backend hosting with managed PostgreSQL |
+| **Google Cloud Console** | OAuth 2.0 credentials |
 
 ---
 
 ## Core Modules
 
 ### Module A — Resume Processor (`app/services/resume_processor.py`)
-
-- PDF text extraction (dual-strategy: pdfplumber + PyPDF2 fallback)
+- Dual-strategy PDF extraction (pdfplumber primary, PyPDF2 fallback)
 - Skill extraction via keyword matching against 100+ known skills
 - Experience year detection and level estimation (intern → c-level)
 - Section extraction (education, experience, skills, projects, certifications)
 - Contact information extraction (email, phone, LinkedIn)
 
 ### Module B — Universal Rejection Risk Engine (`app/services/rejection_engine.py`)
-
-- **Domain-aware** 5-layer deterministic risk scoring with auto domain detection
-- Auto-detects **Tech** vs **Non-Tech** domain using:
-  - Keyword cluster scoring (50%) — 80+ keywords per domain
-  - Role title heuristics (30%) — 30+ known titles per domain
-  - Skill list analysis (20%) — fraction of skills matching each domain
+- **Domain-aware** 5-layer deterministic risk scoring
+- Auto-detects **Tech** vs **Non-Tech** domain using keyword clusters (50%), role title heuristics (30%), skill analysis (20%)
 - Applies domain-specific scoring model (`TECH_MODEL` or `NON_TECH_MODEL`)
-- **5 Risk Layers:** ATS Screening → Recruiter Evaluation → Market Competitiveness → Grammar → Formatting
-- Each layer has domain-specific sub-scores with deterministic sub-weights (see [Deep Dive](#rejection-risk-engine--deep-dive))
+- **5 Risk Layers:** ATS → Recruiter → Market → Grammar → Formatting
 - Risk classification: 0–30% Low, 30–50% Moderate, 50–70% High, 70–100% Critical
-- Risk breakdown chart generation (matplotlib, base64-encoded PNG)
-- LLM used **only** for post-scoring explanation — never for risk calculation
-- Full backward compatibility with legacy 4-component callers
+- LLM used **only** for post-scoring explanation
+
+### Module C — Market Radar (`app/services/market_radar.py`)
+- Skill frequency analysis across job market dataset (20 listings)
+- Demand index with growth trend weighting
+- Future-proof scoring (cross-industry transferability)
+- Module-level caching with configurable refresh interval
+
+### Module D — Career Simulation (`app/services/career_simulation.py`)
+- Before/after comparison via copy-based skill modification
+- Computes `risk_delta` = before.risk − after.risk
+- **Guarantees original resume data is never mutated**
+
+### Module E — Blueprint Generator (`app/services/blueprint_generator.py`)
+- LLM-powered 30-day and 90-day action plans
+- Pydantic schema validation of LLM responses
+- Template-based fallback when LLM is unavailable
+
+### Module F — Hiring Pipeline Simulator (`app/services/hiring_pipeline.py`)
+- Sequential stage-wise survival probability (ATS → Recruiter → Market → Interview)
+- Multiplicative compounding model
+- Bottleneck detection with stage-specific diagnosis
+- Behavioral guidance tiers based on final probability
+
+### Module G — Payment Service (`app/services/payment.py`)
+- Razorpay integration with HMAC-SHA256 signature verification
+- Idempotent payment processing
+- Subscription upgrade (free → pro) with audit trail
 
 ---
 
 ## Rejection Risk Engine — Deep Dive
 
 ### Domain Detection
-
-The engine auto-classifies every resume+JD pair as **Tech** or **Non-Tech** before scoring:
-
 ```
 Composite Score = 0.50 × keyword_cluster + 0.30 × title_heuristic + 0.20 × skill_analysis
 ```
 
-If both scores are near zero, defaults to **Tech** with 50% confidence.
-
 ### Scoring Models
 
-#### TECH_MODEL — Final Risk Formula
-
+**TECH_MODEL:**
 ```
 Final_Risk = (0.30 × ATS) + (0.30 × Recruiter) + (0.20 × Market) + (0.10 × Grammar) + (0.10 × Formatting)
 ```
 
-#### NON_TECH_MODEL — Final Risk Formula
-
+**NON_TECH_MODEL:**
 ```
 Final_Risk = (0.25 × ATS) + (0.35 × Recruiter) + (0.20 × Market) + (0.10 × Grammar) + (0.10 × Formatting)
 ```
 
 ### Layer Sub-Scores
 
-#### Layer 1 — ATS Screening
-
-| Sub-Score | Tech Weight | Non-Tech Weight |
-|---|---|---                                |
-| `technical_skill` / `keyword` | 0.45 | 0.35 |
-| `framework_match` / `tool_match` | 0.25 | 0.25 |
-| `keyword` / `achievement_density` | 0.15 | 0.20 |
-| `exp` | 0.15 | 0.20 |
-
-**Tech:** `ATS_Risk = 1 − (0.45 × technical_skill + 0.25 × framework_match + 0.15 × keyword + 0.15 × exp)`
-
-**Non-Tech:** `ATS_Risk = 1 − (0.35 × keyword + 0.25 × tool_match + 0.20 × achievement_density + 0.20 × exp)`
-
-#### Layer 2 — Recruiter Evaluation
-
-| Sub-Score | Tech Weight | Non-Tech Weight |
+| Layer | Tech Sub-Weights | Non-Tech Sub-Weights |
 |---|---|---|
-| `embedding_similarity` | 0.40 | 0.35 |
-| `impact` / `leadership` | 0.30 | 0.25 |
-| `maturity` / `outcome` | 0.20 | 0.25 |
-| `architecture_signal` / `clarity` | 0.10 | 0.15 |
-
-**Tech:** `Recruiter_Risk = 1 − (0.40 × embedding_sim + 0.30 × impact + 0.20 × maturity + 0.10 × architecture_signal)`
-
-**Non-Tech:** `Recruiter_Risk = 1 − (0.35 × embedding_sim + 0.25 × leadership + 0.25 × outcome + 0.15 × clarity)`
-
-#### Layer 3 — Market Competitiveness
-
-| Sub-Score | Tech Weight | Non-Tech Weight |
-|---|---|---|
-| `demand_alignment` | 0.50 | 0.40 |
-| `competition_alignment` / `certification_alignment` | 0.30 | 0.30 |
-| `stability` / `competition` | 0.20 | 0.30 |
-
-**Tech:** `Market_Risk = 1 − (0.50 × demand_alignment + 0.30 × competition_alignment + 0.20 × stability)`
-
-**Non-Tech:** `Market_Risk = 1 − (0.40 × demand_alignment + 0.30 × certification_alignment + 0.30 × competition)`
-
-#### Layer 4 — Grammar (Universal)
-
-```
-Grammar_Risk = 0.50 × spelling + 0.30 × grammar + 0.20 × readability
-```
-
-#### Layer 5 — Formatting (Universal)
-
-```
-Formatting_Risk = 1 − (0.35 × structure + 0.25 × bullet + 0.20 × density + 0.20 × parse_stability)
-```
-
-### Risk Classification
-
-| Range | Level |
-|---|---|
-| 0–30% | Low |
-| 30–50% | Moderate |
-| 50–70% | High |
-| 70–100% | Critical |
-
-### Output Fields
-
-The engine returns: `final_risk_percent`, `risk_level`, `risk_breakdown` (per-layer), `component_scores` (with sub-score details), `domain_detected` (`"Tech"` / `"Non-Tech"`), `model_used` (`"TECH_MODEL"` / `"NON_TECH_MODEL"`), `domain_confidence`, `chart_base64`, `top_rejection_reasons`, `skill_gaps`, `why_risk_is_high`, `recommended_actions`, and `confidence_interval`.
+| **ATS** | technical_skill(0.45), framework(0.25), keyword(0.15), exp(0.15) | keyword(0.35), tool(0.25), achievement(0.20), exp(0.20) |
+| **Recruiter** | embedding(0.40), impact(0.30), maturity(0.20), architecture(0.10) | embedding(0.35), leadership(0.25), outcome(0.25), clarity(0.15) |
+| **Market** | demand(0.50), competition(0.30), stability(0.20) | demand(0.40), certification(0.30), competition(0.30) |
+| **Grammar** | spelling(0.50), grammar(0.30), readability(0.20) | *same* |
+| **Formatting** | structure(0.35), bullet(0.25), density(0.20), parse(0.20) | *same* |
 
 ### LLM Boundary
-
-The LLM (`generate_rejection_explanation`) is invoked **only after** all deterministic scores are computed. It receives the pre-computed results and generates a human-readable narrative. If the LLM is unavailable, scores are still fully valid — only the explanation is missing.
-
----
-
-### Module C — Market Radar (`app/services/market_radar.py`)
-
-- Skill frequency analysis across job market dataset
-- Demand index with growth trend weighting
-- Future-proof scoring (cross-industry transferability)
-- Module-level caching with configurable refresh interval
-- Fallback to default market data if external source unavailable
-
-### Module D — Career Simulation Engine (`app/services/career_simulation.py`)
-
-- Before/after comparison via copy-based skill modification
-- Reconstructs simulated resume text for embedding comparison
-- Computes `risk_delta` = before.risk − after.risk
-- Optional LLM narrative explanation
-- **Guarantees original resume data is never mutated**
-
-### Module E — Reinvention Blueprint Generator (`app/services/blueprint_generator.py`)
-
-- LLM-powered 30-day and 90-day action plans
-- Pydantic schema validation of LLM responses (`Blueprint30Response`, `Blueprint90Response`)
-- Template-based fallback plan when LLM is unavailable
-- Version-controlled prompt templates
+The LLM is invoked **only after** all deterministic scores are computed. If unavailable, scores remain fully valid — only the narrative explanation is missing.
 
 ---
 
@@ -213,57 +200,58 @@ The LLM (`generate_rejection_explanation`) is invoked **only after** all determi
 ```
 reBorn_i/
 ├── app/
-│   ├── __init__.py              # Package init, version
-│   ├── main.py                  # FastAPI app factory, lifecycle, exception handlers
+│   ├── __init__.py                 # Package init, __version__
+│   ├── main.py                     # FastAPI app factory, lifecycle, exception handlers
 │   ├── api/
-│   │   ├── __init__.py
-│   │   ├── auth.py              # JWT auth: register, login, token decode
-│   │   └── routes.py            # All API endpoint definitions
+│   │   ├── auth.py                 # JWT auth, Google OAuth, password hashing
+│   │   └── routes.py               # All API endpoint definitions (1099 lines)
 │   ├── config/
-│   │   ├── __init__.py
-│   │   ├── settings.py          # Pydantic BaseSettings (env vars)
-│   │   ├── scoring_weights.py   # Frozen dataclass scoring configs
-│   │   └── prompt_templates.py  # Version-controlled LLM prompt templates
+│   │   ├── settings.py             # Pydantic BaseSettings (env vars)
+│   │   ├── scoring_weights.py      # Frozen dataclass scoring configs (377 lines)
+│   │   └── prompt_templates.py     # Version-controlled LLM prompt templates
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── database.py          # SQLAlchemy ORM models
+│   │   └── database.py             # SQLAlchemy ORM: User, Resume, Analysis, etc.
 │   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── schemas.py           # Pydantic request/response schemas
+│   │   └── schemas.py              # Pydantic request/response schemas
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── resume_processor.py  # Module A
-│   │   ├── rejection_engine.py  # Module B
-│   │   ├── market_radar.py      # Module C
-│   │   ├── career_simulation.py # Module D
-│   │   └── blueprint_generator.py # Module E
+│   │   ├── resume_processor.py     # Module A — PDF extraction & parsing
+│   │   ├── rejection_engine.py     # Module B — 5-layer risk engine (84K)
+│   │   ├── market_radar.py         # Module C — Market intelligence
+│   │   ├── career_simulation.py    # Module D — What-if analysis
+│   │   ├── blueprint_generator.py  # Module E — Action plan generation
+│   │   ├── hiring_pipeline.py      # Module F — Pipeline survival sim
+│   │   └── payment.py              # Module G — Razorpay integration
 │   └── utils/
-│       ├── __init__.py
-│       ├── database.py          # Async engine, session factory, init/close
-│       ├── embeddings.py        # sentence-transformers + cosine similarity
-│       ├── exceptions.py        # Full exception hierarchy
-│       ├── llm_client.py        # OpenAI client with retry logic
-│       ├── logging.py           # structlog config with PII sanitization
-│       └── security.py          # Input sanitization, prompt injection detection
+│       ├── database.py             # Async engine, session factory
+│       ├── embeddings.py           # OpenAI embeddings + keyword fallback
+│       ├── exceptions.py           # 12-class exception hierarchy
+│       ├── llm_client.py           # Async OpenAI client with retry
+│       ├── logging.py              # structlog with PII sanitization
+│       └── security.py             # Input sanitization, prompt injection
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx                 # Router with 13 protected routes
+│   │   ├── api/client.ts           # Axios client with JWT interceptors
+│   │   ├── context/
+│   │   │   ├── AuthContext.tsx      # Authentication state
+│   │   │   └── SubscriptionContext.tsx  # Subscription state
+│   │   ├── components/             # 10 reusable components
+│   │   ├── pages/                  # 16 page components
+│   │   └── types/index.ts          # TypeScript interfaces (265 lines)
+│   ├── package.json                # Dependencies
+│   ├── vite.config.ts              # Vite configuration
+│   ├── tailwind.config.js          # TailwindCSS theme
+│   └── vercel.json                 # SPA routing rewrites
 ├── data/
-│   └── job_market_dataset.json  # Sample market data (20 job listings)
-├── docker/
-│   ├── Dockerfile               # Multi-stage build (base → deps → app)
-│   └── docker-compose.yml       # API + PostgreSQL 16 + Redis 7
-├── tests/
-│   ├── conftest.py              # Shared fixtures
-│   ├── test_api.py              # API integration tests
-│   ├── test_blueprint_generator.py
-│   ├── test_career_simulation.py
-│   ├── test_market_radar.py
-│   ├── test_rejection_engine.py
-│   ├── test_resume_processor.py
-│   └── test_security.py
-├── .env.example                 # Environment variable template
-├── .gitignore
-├── pyproject.toml               # Project metadata & tool config
-├── requirements.txt             # Pinned dependencies
-└── README.md                    # This file
+│   └── job_market_dataset.json     # 20 job listings with skills
+├── main.py                         # Root entry point for Render
+├── render.yaml                     # Render Blueprint deployment
+├── requirements.txt                # Pinned Python dependencies
+├── runtime.txt                     # Python version (3.10.12)
+├── .env.example                    # Environment variable template
+├── .env.render                     # Render production env template
+├── .gitignore                      # Git ignore rules
+└── .renderignore                   # Render deploy ignore rules
 ```
 
 ---
@@ -271,290 +259,285 @@ reBorn_i/
 ## Quick Start
 
 ### Prerequisites
-
-- Python 3.11+
-- PostgreSQL 16+
-- Redis 7+ (optional, for caching)
+- Python 3.10+
+- Node.js 18+
 - An OpenAI API key (optional — system works without it via fallbacks)
-- A Google OAuth Client ID (optional — for Google Sign-In feature, see [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md))
+- A Google OAuth Client ID (optional — for Google Sign-In)
 
-### Local Development
+### Backend Setup
 
 ```bash
-# 1. Clone and enter the project
+# Clone and enter the project
+git clone https://github.com/Sharique002/reBorn_i.git
 cd reBorn_i
 
-# 2. Create and activate a virtual environment
+# Create and activate virtual environment
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 # source .venv/bin/activate   # macOS/Linux
 
-# 3. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment
+# Configure environment
 cp .env.example .env
-# Edit .env with your DATABASE_URL, JWT_SECRET_KEY, OPENAI_API_KEY, etc.
-# For Google Sign-In: Set GOOGLE_CLIENT_ID (see GOOGLE_OAUTH_SETUP.md)
+# Edit .env — set JWT_SECRET_KEY, OPENAI_API_KEY (optional), etc.
 
-# 5. Start the backend
+# Start the backend (uses SQLite by default for development)
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-# 6. In a new terminal, start the frontend
+The API is available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
+
+### Frontend Setup
+
+```bash
+# In a new terminal
 cd frontend
+
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env — set VITE_GOOGLE_CLIENT_ID (optional)
+
+# Start the dev server
 npm run dev
 ```
 
-The API will be available at `http://localhost:8000`. Interactive docs at `http://localhost:8000/docs`.
-
-### Docker (Recommended for Production)
-
-```bash
-# Start all services (API + PostgreSQL + Redis)
-docker compose -f docker/docker-compose.yml up --build -d
-
-# View logs
-docker compose -f docker/docker-compose.yml logs -f api
-
-# Stop
-docker compose -f docker/docker-compose.yml down
-```
+Frontend runs at `http://localhost:5173`.
 
 ---
 
 ## Environment Variables
 
-All configuration is loaded from environment variables (or a `.env` file). See [`.env.example`](.env.example) for the full template.
+All config is loaded from environment variables or `.env`. See `.env.example` for the full template.
 
 | Variable | Default | Description |
 |---|---|---|
 | `APP_NAME` | `reBorn_i` | Application name |
 | `APP_VERSION` | `1.0.0` | Semantic version |
 | `DEBUG` | `false` | Debug mode (exposes error details) |
-| `LOG_LEVEL` | `INFO` | DEBUG, INFO, WARNING, ERROR, CRITICAL |
 | `ENVIRONMENT` | `development` | development / staging / production |
-| `API_HOST` | `0.0.0.0` | Bind address |
-| `API_PORT` | `8000` | Bind port |
-| `API_PREFIX` | `/api/v1` | Route prefix |
-| `CORS_ORIGINS` | `*` | Comma-separated allowed origins |
-| `DATABASE_URL` | `postgresql+asyncpg://...` | Async PostgreSQL DSN |
-| `DB_POOL_SIZE` | `10` | Connection pool size |
-| `DB_MAX_OVERFLOW` | `20` | Max overflow connections |
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
-| `JWT_SECRET_KEY` | — | **Required in production.** Min 16 chars. |
-| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Token TTL in minutes |
-| `GOOGLE_CLIENT_ID` | — | **Optional.** Google OAuth Client ID for Sign-In (see [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md)) |
-| `OPENAI_API_KEY` | — | OpenAI API key (optional for scoring) |
+| `DATABASE_URL` | `postgresql+asyncpg://...` | Async DB DSN (SQLite for dev) |
+| `JWT_SECRET_KEY` | — | **Required.** Min 16 chars |
+| `GOOGLE_CLIENT_ID` | — | Optional. Google OAuth Client ID |
+| `OPENAI_API_KEY` | — | Optional. For explanations only |
 | `OPENAI_MODEL` | `gpt-4o` | LLM model name |
-| `OPENAI_MAX_TOKENS` | `4096` | Max response tokens |
-| `OPENAI_TEMPERATURE` | `0.3` | LLM temperature |
-| `LLM_REQUEST_TIMEOUT` | `60` | LLM call timeout (seconds) |
-| `LLM_MAX_RETRIES` | `3` | LLM retry attempts |
-| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | sentence-transformers model |
-| `EMBEDDING_CACHE_TTL` | `3600` | Embedding cache TTL (seconds) |
+| `EMBEDDING_MODEL` | `text-embedding-3-small` | OpenAI embedding model |
+| `CORS_ORIGINS` | `*` | Comma-separated allowed origins |
 | `MAX_FILE_SIZE_MB` | `10` | Max upload file size |
-| `ALLOWED_FILE_TYPES` | `application/pdf` | Allowed MIME types |
-| `WEIGHT_SKILL_MATCH` | `0.35` | Legacy rejection scoring weight |
-| `WEIGHT_EXPERIENCE_ALIGNMENT` | `0.25` | Legacy rejection scoring weight |
-| `WEIGHT_KEYWORD_DENSITY` | `0.20` | Legacy rejection scoring weight |
-| `WEIGHT_EMBEDDING_SIMILARITY` | `0.20` | Legacy rejection scoring weight |
+| `RAZORPAY_KEY_ID` | — | Optional. For payment processing |
+| `RAZORPAY_KEY_SECRET` | — | Optional. For payment verification |
+| `MARKET_DATA_PATH` | `data/job_market_dataset.json` | Market data file path |
 
-> **Note:** The domain-aware engine uses frozen dataclass weights in `scoring_weights.py` (Tech/Non-Tech models). The env vars above are retained for backward compatibility with legacy callers.
-| `MARKET_DATA_PATH` | `data/job_market_dataset.json` | Path to market data file |
-| `MARKET_REFRESH_INTERVAL_HOURS` | `24` | Market data cache refresh |
+> **Note:** Domain-aware scoring uses frozen dataclass weights in `scoring_weights.py`. The env-level `WEIGHT_*` vars are kept for backward compatibility only.
 
 ---
 
 ## API Documentation
 
-All endpoints are prefixed with `/api/v1`. Interactive Swagger docs are available at `/docs` (disabled in production).
+All endpoints are prefixed with `/api/v1`. Swagger docs available at `/docs` (disabled in production).
 
 ### Authentication
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | No | Create a user account |
-| POST | `/auth/login` | No | Obtain a JWT access token |
-| POST | `/auth/google` | No | Authenticate with Google OAuth (requires `GOOGLE_CLIENT_ID` configured) |
+|---|---|---|---|
+| POST | `/auth/register` | No | Create user account |
+| POST | `/auth/login` | No | Obtain JWT access token |
+| POST | `/auth/google` | No | Google OAuth sign-in |
 | GET | `/auth/me` | Yes | Get current user profile |
 
-**Token usage:** Include the JWT in the `Authorization` header:
-```
-Authorization: Bearer <token>
-```
+**Token usage:** `Authorization: Bearer <token>`
 
 ### Resume
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/resume/upload` | Yes | Upload a PDF resume for processing |
-| GET | `/resume/{resume_id}` | Yes | Retrieve processed resume data |
+|---|---|---|---|
+| POST | `/resume/upload` | Yes | Upload PDF resume |
+| GET | `/resume/list` | Yes | List user's resumes |
+| GET | `/resume/{id}` | Yes | Get processed resume |
+| DELETE | `/resume/{id}` | Yes | Delete a resume |
 
 ### Rejection Analysis
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/analysis/rejection-risk` | Yes | Compute rejection risk score for a resume against a job description |
-
-**Request body:**
-```json
-{
-  "resume_id": "uuid",
-  "job_description": "string",
-  "job_title": "string (optional)",
-  "required_skills": ["string"] // optional
-}
-```
-
-**Response includes:** `risk_score` (0.0–1.0), `risk_level`, `component_scores` (5 layers with sub-score details), `domain_detected` (`"Tech"` / `"Non-Tech"`), `model_used` (`"TECH_MODEL"` / `"NON_TECH_MODEL"`), `risk_breakdown`, `chart_base64`, `skill_gaps`, `top_rejection_reasons`, `why_risk_is_high`, `recommended_actions`, `confidence_interval`, optional `explanation`.
+|---|---|---|---|
+| POST | `/analysis/rejection-risk` | Yes | Compute 5-layer rejection risk |
+| GET | `/analysis/list` | Yes | List recent analyses |
 
 ### Market Radar
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/market/radar` | Yes | Get current market intelligence snapshot |
-| POST | `/market/radar/refresh` | Yes | Force market data refresh |
+|---|---|---|---|
+| GET | `/market/radar` | Yes | Get market intelligence |
+| POST | `/market/radar/refresh` | Yes | Force data refresh |
 
 ### Career Simulation
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/simulation/simulate` | Yes | Run a before/after career simulation |
-
-**Request body:**
-```json
-{
-  "resume_id": "uuid",
-  "job_description": "string",
-  "skills_to_add": ["string"],
-  "skills_to_remove": ["string"] // optional
-}
-```
-
-**Response includes:** `before_metrics`, `after_metrics`, `risk_delta`, `improvement_summary`.
+|---|---|---|---|
+| POST | `/simulation/simulate` | Yes | Run what-if simulation |
 
 ### Blueprint
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/blueprint/generate` | Yes | Generate a 30-day or 90-day reinvention plan |
-| GET | `/blueprint/{blueprint_id}` | Yes | Retrieve a saved blueprint |
+|---|---|---|---|
+| POST | `/blueprint/generate` | Yes | Generate 30/90-day plan |
+| GET | `/blueprint/{id}` | Yes | Retrieve saved blueprint |
 
-**Request body:**
-```json
-{
-  "resume_id": "uuid",
-  "job_description": "string",
-  "target_role": "string",
-  "plan_type": "30_day | 90_day"
-}
-```
+### Hiring Pipeline
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/hiring-pipeline/simulate` | Yes | Pipeline survival simulation |
+
+### Payments
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/payment/create-order` | Yes | Create Razorpay order |
+| POST | `/payment/verify` | Yes | Verify payment & upgrade |
 
 ### System
-
 | Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
+|---|---|---|---|
 | GET | `/health` | No | System health check |
+| GET | `/` | No | Root connectivity check |
 
 ---
 
-## Testing
+## Frontend Pages
 
-Tests use `pytest` with `pytest-asyncio` for async test support.
+| Route | Page | Description |
+|---|---|---|
+| `/` | Landing Page | Hero section, features, how-it-works |
+| `/login` | Login | Email/password + Google OAuth |
+| `/register` | Register | Account creation |
+| `/dashboard` | Dashboard | Overview of all modules |
+| `/profile` | User Profile | Account settings, resume list, analysis history |
+| `/resume` | Resume Upload | PDF upload with processing status |
+| `/analysis` | Rejection Analysis | 5-layer risk scoring with charts |
+| `/market` | Market Radar | Skill demand visualization |
+| `/simulation` | Career Simulation | Before/after skill comparison |
+| `/blueprint` | Blueprint | 30/90-day reinvention plans |
+| `/pipeline` | Hiring Pipeline | Stage-wise survival probability |
+| `/pivot` | Career Pivot | Career transition guidance |
+| `/interview` | Interview Readiness | Interview preparation |
+| `/tracker` | Resume Tracker | Resume version management |
+| `/applications` | Application Tracker | Job application tracking |
+| `/action-plan` | Action Plan | Consolidated action items |
 
-```bash
-# Run all tests
-pytest tests/ -v
+---
 
-# Run a specific test file
-pytest tests/test_rejection_engine.py -v
+## Deployment
 
-# Run with coverage
-pytest tests/ --cov=app --cov-report=term-missing
+### Production Architecture
+
+```
+User → Vercel (Frontend) → Render (Backend API) → PostgreSQL (Render DB)
+                                    ↓
+                            OpenAI API (optional)
 ```
 
-### Test Suite Overview
+### Backend — Render
 
-| File | Tests | Coverage Area |
-|------|-------|--------------|
-| `test_resume_processor.py` | 14 | PDF extraction, skill matching, text cleaning |
-| `test_rejection_engine.py` | 60+ | Domain detection, Tech/Non-Tech sub-scores, weight validation, layer scoring, chart generation, backward compatibility |
-| `test_market_radar.py` | 12 | Skill frequency, demand index, future-proof scoring |
-| `test_career_simulation.py` | 9 | Skill modification, data immutability |
-| `test_security.py` | 13 | Input sanitization, prompt injection detection |
-| `test_blueprint_generator.py` | 8 | Schema validation, fallback plan generation |
-| `test_api.py` | 10 | Health check, auth guards, error responses |
+1. Push to GitHub (`https://github.com/Sharique002/reBorn_i.git`)
+2. Connect repo to Render as a **Web Service**
+3. Configure:
+   - **Build Command:** `pip install --no-cache-dir -r requirements.txt`
+   - **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+   - **Python Version:** `3.10.12` (set via `runtime.txt`)
+4. Add environment variables from `.env.render` template
+5. Create a Render PostgreSQL database and set `DATABASE_URL`
 
-**Total: 120+ tests**
+### Frontend — Vercel
 
----
-
-## Docker Deployment
-
-### Services
-
-| Service | Image | Port | Purpose |
-|---------|-------|------|---------|
-| `api` | Built from `Dockerfile` | 8000 | FastAPI application |
-| `db` | `postgres:16-alpine` | 5432 | Primary database |
-| `redis` | `redis:7-alpine` | 6379 | Caching layer |
-
-### Dockerfile Highlights
-
-- **Multi-stage build** (base → dependencies → application) for minimal image size
-- Non-root user (`appuser`) for security
-- Health check endpoint (`/api/v1/health`)
-- Only production dependencies installed
+1. Connect the `frontend/` directory to Vercel
+2. Set **Root Directory** to `frontend`
+3. Set environment variables:
+   - `VITE_API_URL` = your Render backend URL
+   - `VITE_GOOGLE_CLIENT_ID` = your Google OAuth client ID
+4. Vercel auto-detects Vite and builds with `npm run build`
 
 ### Production Checklist
 
-1. Set `ENVIRONMENT=production` to disable Swagger docs
-2. Generate a strong `JWT_SECRET_KEY`: `python -c "import secrets; print(secrets.token_urlsafe(64))"`
-3. Set `DEBUG=false`
-4. Provide a real `DATABASE_URL` pointing to a managed PostgreSQL instance
-5. Set `CORS_ORIGINS` to your frontend domain(s)
-6. Set `OPENAI_API_KEY` if you want LLM-powered explanations and blueprints
-7. Set `GOOGLE_CLIENT_ID` for Google Sign-In (see [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md))
-8. Configure `LOG_LEVEL=WARNING` or `ERROR` for reduced verbosity
+- [ ] Set `ENVIRONMENT=production` (disables Swagger docs)
+- [ ] Generate strong `JWT_SECRET_KEY`: `python -c "import secrets; print(secrets.token_urlsafe(64))"`
+- [ ] Set `DEBUG=false`
+- [ ] Provide real `DATABASE_URL` (change `postgresql://` to `postgresql+asyncpg://`)
+- [ ] Set `CORS_ORIGINS` to your frontend domain
+- [ ] Set `OPENAI_API_KEY` for LLM explanations (optional)
+- [ ] Configure `GOOGLE_CLIENT_ID` for OAuth
+- [ ] Set `LOG_LEVEL=WARNING` for reduced verbosity
+
+---
+
+## Security
+
+### Input Validation
+- **Prompt injection detection** — 12 regex patterns scan all user text inputs
+- **Input sanitization** — null byte removal, whitespace normalization, length limits
+- **PDF validation** — MIME type check, file size limit, magic byte (`%PDF-`) verification
+
+### Authentication
+- **JWT tokens** — HS256 signing, configurable expiry, per-request user resolution
+- **bcrypt** — Password hashing with auto-upgrade support
+- **Google OAuth** — Server-side ID token verification via `google-auth`
+
+### Logging
+- **PII sanitization** — Passwords, tokens, API keys, SSNs automatically redacted
+- **Structured logging** — JSON output in production, console in development
+
+### Payment Security
+- **HMAC-SHA256** — Razorpay signature verification with constant-time comparison
+- **Idempotent processing** — Duplicate payment verification returns success without re-processing
 
 ---
 
 ## Design Principles
 
 ### Determinism First
-
-All scoring functions are pure — given the same resume, job description, and weights, they produce the same output every time. Domain detection itself is deterministic (keyword clusters + title heuristics + skill analysis — no LLM involvement). This is critical for:
-- Reproducible career analytics
-- A/B testing scoring weight configurations
-- Auditability of rejection risk assessments
-- Consistent domain classification across runs
+All scoring functions are pure — same inputs always produce same outputs. Domain detection is deterministic (keyword clusters + title heuristics + skill analysis). No LLM involvement in computation.
 
 ### Graceful Degradation
-
-The system operates at full fidelity without an LLM:
-- Rejection risk scores work 100% without OpenAI
-- Market analysis works 100% from local dataset
-- Career simulation works 100% using embeddings only
-- Blueprint generation falls back to curated templates
-
-LLM integration adds *explanations* and *narrative plans*, but never affects scores.
-
-### Security Posture
-
-- **Prompt injection detection** — 11 regex patterns scan all user text inputs
-- **Input sanitization** — HTML/script tag removal, length limits
-- **PDF validation** — MIME type, file size, magic byte header verification
-- **PII sanitization** — structured logs redact email, phone, and name fields
-- **JWT authentication** — bcrypt password hashing, token expiry, per-request user resolution
+The system operates at full fidelity without external services:
+- ✅ Rejection risk scores — work 100% without OpenAI
+- ✅ Market analysis — works from local dataset
+- ✅ Career simulation — works using keyword similarity fallback
+- ✅ Blueprint generation — falls back to curated templates
+- ✅ Embeddings — keyword-based TF-IDF fallback (pure Python, no numpy)
 
 ### Data Immutability
+Career simulation operates on copies. Original resume data is never modified during what-if analysis — enforced via explicit `copy()` operations at the service layer.
 
-Career simulation operates on copies of user data. The original resume, skills, and scores are never modified during what-if analysis. This is enforced at the service layer via explicit `copy()` / `list()` operations.
+### Exception Hierarchy
+12-class exception hierarchy with centralized mapping to HTTP status codes:
+
+| Exception | HTTP Status |
+|---|---|
+| `FileValidationError`, `PromptInjectionError` | 400 |
+| `CorruptedFileError`, `PDFExtractionError` | 422 |
+| `LLMError` | 502 |
+| `ScoringError`, `MarketDataError` | 500 |
+
+---
+
+## Database Schema
+
+| Table | Description |
+|---|---|
+| `users` | Accounts with email/Google OAuth, subscription plan |
+| `resumes` | Uploaded PDFs with extracted structured data |
+| `rejection_analyses` | Risk scores with 5-layer breakdowns |
+| `market_snapshots` | Point-in-time market demand snapshots |
+| `blueprints` | Generated 30/90-day reinvention plans |
+| `career_simulations` | Before/after skill modification comparisons |
+| `payments` | Razorpay transaction records |
+
+All tables use **String-based UUIDs** for cross-database compatibility (PostgreSQL + SQLite).
 
 ---
 
 ## License
 
 Private / Internal use.
+
+---
+
+<p align="center">
+  <sub>Built with ❤️ by <a href="https://github.com/Sharique002">Sharique</a></sub>
+</p>
