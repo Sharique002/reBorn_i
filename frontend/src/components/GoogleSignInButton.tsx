@@ -36,6 +36,7 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
   const [loading, setLoading] = useState(false);
   const [gsiReady, setGsiReady] = useState(false);
   const [gsiError, setGsiError] = useState(false);
+  const initRef = useRef(false);
 
   useEffect(() => {
     // Wait for Google Identity Services to load
@@ -48,6 +49,7 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
       attempts++;
       if (attempts > 50) {
         // GSI script didn't load after ~5 seconds — skip silently
+        console.warn('Google Identity Services failed to load. Google Sign-In unavailable.');
         setGsiError(true);
         return;
       }
@@ -57,7 +59,10 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
   }, []);
 
   useEffect(() => {
-    if (!gsiReady || !buttonRef.current || !GOOGLE_CLIENT_ID) return;
+    if (!gsiReady || !buttonRef.current || !GOOGLE_CLIENT_ID || initRef.current) return;
+
+    // Prevent duplicate initialization
+    initRef.current = true;
 
     try {
       window.google!.accounts.id.initialize({
@@ -70,15 +75,14 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
           } catch (err: any) {
             const msg = err.message || 'Google sign-in failed';
             onError?.(msg);
+            console.error('Google login error:', err);
           } finally {
             setLoading(false);
           }
         },
         auto_select: false,
         ux_mode: 'popup',
-        // Add context and origin for better debugging
         context: 'signin',
-        // Cancel callback for popup close
         cancel_on_tap_outside: false,
       });
 
@@ -95,6 +99,7 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
       // GSI initialization failed (e.g. origin not allowed) — log and hide button
       console.error('Google Sign-In initialization failed:', err);
       setGsiError(true);
+      initRef.current = false; // Allow retry if needed
     }
   }, [gsiReady, googleLogin, navigate, onError]);
 
