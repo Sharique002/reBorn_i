@@ -2,7 +2,7 @@
 
 ## Current Status
 - **Backend:** http://localhost:9000 ✅
-- **Frontend:** http://localhost:5174 ✅
+- **Frontend:** http://localhost:5173 ✅
 - **Frontend → Backend:** Properly configured at http://localhost:9000 ✅
 - **Google OAuth:** Configured (awaiting origin whitelist) 🔄
 
@@ -42,14 +42,14 @@
 - [ ] Google login endpoint reachable at `/auth/google`
 
 ### ✅ Frontend Tests
-- [ ] Login page loads: http://localhost:5174/login
-- [ ] No 5173 port errors in console
+- [ ] Login page loads: http://localhost:5173/login
+- [ ] No 5174 port errors in console
 - [ ] API calls route to localhost:9000
 - [ ] Google button visible (will show 403 until authorized)
 - [ ] Error messages display properly
 
 ### 🔄 Google OAuth Tests (After Authorization)
-1. Add http://localhost:5174 to Authorized JavaScript Origins
+1. Add http://localhost:5173 to Authorized JavaScript Origins
 2. Add http://localhost:9000 to Authorized Redirect URIs
 3. Wait 5-10 minutes for propagation
 4. Clear browser cache (Ctrl+Shift+Del)
