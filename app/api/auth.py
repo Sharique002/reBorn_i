@@ -201,7 +201,7 @@ async def register_user(user_data: UserCreate, db: AsyncSession) -> User:
 
     db.add(user)
     await db.flush()
-    await db.refresh(user)
+    await db.refresh(user, attribute_names=["id", "email", "hashed_password", "full_name", "auth_provider", "google_id", "avatar_url", "is_active", "subscription_plan", "subscription_started_at", "created_at", "updated_at"])
 
     logger.info("user_registered", user_id=str(user.id))
     return user

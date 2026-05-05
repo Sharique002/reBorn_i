@@ -31,7 +31,7 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema for user data in responses."""
-    id: UUID
+    id: str  # UUID is stored as string in database
     email: str
     full_name: Optional[str]
     is_active: bool
