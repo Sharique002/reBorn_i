@@ -20,7 +20,6 @@ from app.config.prompt_templates import (
     PROMPT_TEMPLATE_VERSION,
     REINVENTION_BLUEPRINT_30_PROMPT,
     REINVENTION_BLUEPRINT_90_PROMPT,
-    TEMPLATE_REGISTRY,
 )
 from app.utils.exceptions import LLMError, LLMResponseValidationError
 from app.utils.llm_client import call_llm_structured

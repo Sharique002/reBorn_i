@@ -2,14 +2,16 @@
 // reBorn_i — Public Landing Page
 // ═══════════════════════════════════════════════════════════
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import {
     FileText, ShieldAlert, GitCompareArrows, Compass, ListChecks,
     Map, Filter, Brain, TrendingUp, Briefcase,
     ArrowRight, Sparkles, Zap, Target, BarChart3,
-    CheckCircle2, Users, Globe2, Flower2, Star,
+    CheckCircle2, Users, Globe2, Flower2, Star, Lock, X,
 } from 'lucide-react';
+import { useSubscriptionStore } from '../modules/subscription/store';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 32 },
@@ -68,6 +70,11 @@ const STATS = [
 ];
 
 export default function LandingPage() {
+    const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [errorMsg, setErrorMsg] = useState('');
+    const navigate = useNavigate();
+    const subscriptionStore = useSubscriptionStore();
     return (
         <div className="min-h-screen" style={{ background: 'var(--bg)', fontFamily: "'Nunito', system-ui, sans-serif" }}>
             {/* ── Navbar ─────────────────────────────────────────── */}
@@ -306,8 +313,278 @@ export default function LandingPage() {
                 </div>
             </section>
 
+            {/* ── Premium Unlock Hero ────────────────────────────── */}
+            <section className="py-24 px-6" style={{ background: 'linear-gradient(135deg, rgba(245,166,35,0.05), rgba(232,69,101,0.03))' }}>
+                <div className="max-w-4xl mx-auto">
+                    <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger} className="grid md:grid-cols-2 gap-12 items-center">
+                        {/* Left: Content */}
+                        <motion.div variants={fadeUp}>
+                            <div className="inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1 rounded-full mb-6"
+                                style={{ background: 'rgba(245,166,35,0.1)', color: '#B87300', border: '1px solid rgba(245,166,35,0.2)' }}>
+                                <Sparkles className="w-3.5 h-3.5" /> Premium Unlock
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-4" style={{ color: 'var(--text)' }}>
+                                Know Your Real Interview Probability
+                            </h2>
+                            <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
+                                Discover exactly why candidates get rejected and how to improve hiring success — all for <span style={{ fontWeight: 'bold', color: 'var(--text)' }}>just ₹9</span>.
+                            </p>
+
+                            {/* Features */}
+                            <div className="space-y-3 mb-8">
+                                {[
+                                    'ATS Analysis — Score your resume against ATS systems',
+                                    'Recruiter Insights — Understand what hiring managers see',
+                                    'Skill Gap Detection — Identify missing critical skills',
+                                    'Career Strategy — Get personalized action plan',
+                                ].map((feature, i) => (
+                                    <motion.div key={i} variants={fadeUp} className="flex items-start gap-3">
+                                        <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#5A9E5A' }} />
+                                        <span style={{ color: 'var(--text)' }}>{feature}</span>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {/* CTA + Trust */}
+                            <motion.div variants={fadeUp} className="space-y-4">
+                                <button
+                                    onClick={() => setPremiumModalOpen(true)}
+                                    className="w-full inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl text-white font-bold text-lg transition-all"
+                                    style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)', boxShadow: '0 8px 32px rgba(245,166,35,0.35)' }}
+                                    onMouseEnter={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 40px rgba(245,166,35,0.45)'; }}
+                                    onMouseLeave={(e: React.MouseEvent<HTMLElement>) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 32px rgba(245,166,35,0.35)'; }}>
+                                    <Zap className="w-5 h-5" /> Unlock Full Hiring Report
+                                </button>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }} className="text-center">
+                                    Only ₹9 • Instant Access • One-time unlock
+                                </p>
+                            </motion.div>
+
+                            {/* Social proof */}
+                            <motion.div variants={fadeUp} className="mt-8 pt-8 border-t" style={{ borderColor: 'var(--border)' }}>
+                                <p style={{ color: 'var(--text-secondary)', fontSize: '13px' }} className="mb-3 font-semibold">
+                                    Trusted by 12K+ job seekers
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    {[
+                                        { icon: TrendingUp, text: '20–40% improvement', color: '#5A9E5A' },
+                                        { icon: Target, text: 'Takes <10 min', color: '#0EA5E9' },
+                                    ].map(({ icon: Icon, text, color }) => (
+                                        <div key={text} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold"
+                                            style={{ background: `${color}12`, border: `1px solid ${color}25`, color }}>
+                                            <Icon className="w-4 h-4" /> {text}
+                                        </div>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        </motion.div>
+
+                        {/* Right: Preview Card */}
+                        <motion.div variants={fadeUp} className="relative">
+                            {/* Glowing bg */}
+                            <div className="absolute -inset-8 rounded-3xl pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(245,166,35,0.15) 0%, transparent 70%)' }} />
+
+                            {/* Card */}
+                            <motion.div
+                                whileHover={{ y: -4 }}
+                                className="relative rounded-3xl p-8 overflow-hidden"
+                                style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 32px rgba(45,42,50,0.08)' }}>
+
+                                {/* Header */}
+                                <div className="mb-6">
+                                    <h3 className="text-2xl font-black" style={{ color: 'var(--text)' }}>Your Hiring Report</h3>
+                                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Interactive analysis dashboard</p>
+                                </div>
+
+                                {/* Metrics Grid */}
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    {[
+                                        { label: 'Interview Prob.', value: '42%', color: '#8B5CF6' },
+                                        { label: 'ATS Survival', value: '68%', color: '#0EA5E9' },
+                                        { label: 'Recruiter Match', value: '55%', color: '#F5A623' },
+                                        { label: 'Market Fit', value: '71%', color: '#5A9E5A' },
+                                    ].map((metric) => (
+                                        <motion.div key={metric.label}
+                                            className="rounded-xl p-4 relative overflow-hidden"
+                                            style={{ background: `${metric.color}10` }}>
+                                            <div style={{ opacity: 0.5, fontSize: '12px', color: 'var(--text-secondary)' }} className="mb-2">{metric.label}</div>
+                                            <div className="text-2xl font-black" style={{ color: metric.color }}>{metric.value}</div>
+                                            {/* Blurred overlay */}
+                                            <div className="absolute inset-0" style={{
+                                                background: 'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.5))',
+                                                backdropFilter: 'blur(4px)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <div className="text-center">
+                                                    <Lock className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--text-secondary)' }} />
+                                                    <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Locked</div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {/* Locked sections */}
+                                <div className="space-y-3 opacity-60 pointer-events-none">
+                                    {['Full Diagnosis', 'Skill Gap Analysis', 'Action Plan'].map((section) => (
+                                        <div key={section} className="h-12 rounded-lg" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }} />
+                                    ))}
+                                </div>
+
+                                {/* Lock overlay badge */}
+                                <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold"
+                                    style={{ background: 'rgba(232, 69, 101, 0.1)', color: '#E84565', border: '1px solid rgba(232, 69, 101, 0.2)' }}>
+                                    <Lock className="w-4 h-4" /> Premium Locked
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* ── Premium Payment Modal ────────────────────────── */}
+            {premiumModalOpen && (
+                <motion.div
+                    key="premium-modal"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)' }}
+                    onClick={() => setPremiumModalOpen(false)}>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 32 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeOut' }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-2xl rounded-3xl p-8 md:p-12 relative"
+                        style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+
+                        {/* Close button */}
+                        <button
+                            onClick={() => setPremiumModalOpen(false)}
+                            className="absolute top-6 right-6 p-2 rounded-lg transition-colors"
+                            style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623' }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,166,35,0.2)'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,166,35,0.1)'; }}>
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        {/* Content */}
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Left: Benefits */}
+                            <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                                <h2 className="text-3xl font-black mb-2" style={{ color: 'var(--text)' }}>
+                                    Unlock Full Hiring Intelligence
+                                </h2>
+                                <p className="mb-6" style={{ color: 'var(--text-secondary)' }}>
+                                    See exactly why you're getting rejected and how to improve instantly.
+                                </p>
+
+                                <div className="space-y-3">
+                                    {[
+                                        'ATS Diagnosis',
+                                        'Recruiter Analysis',
+                                        'Skill Gap Detection',
+                                        'Personalized Action Plan',
+                                        'Career Pivot Insights',
+                                    ].map((benefit) => (
+                                        <motion.div key={benefit} whileHover={{ x: 4 }} className="flex items-center gap-3">
+                                            <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: '#5A9E5A' }} />
+                                            <span style={{ color: 'var(--text)' }} className="font-semibold">{benefit}</span>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </motion.div>
+
+                            {/* Right: Payment */}
+                            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="flex flex-col justify-center">
+                                {/* Price card */}
+                                <motion.div
+                                    animate={{ borderColor: ['rgba(245,166,35,0.2)', 'rgba(245,166,35,0.5)', 'rgba(245,166,35,0.2)'] }}
+                                    transition={{ duration: 3, repeat: Infinity }}
+                                    className="rounded-2xl p-8 mb-6 text-center relative overflow-hidden"
+                                    style={{
+                                        background: 'linear-gradient(135deg, rgba(245,166,35,0.1), rgba(232,69,101,0.05))',
+                                        border: '2px solid rgba(245,166,35,0.2)',
+                                    }}>
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }} className="mb-2">One-time unlock</div>
+                                    <motion.div
+                                        animate={{ scale: [1, 1.05, 1] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        className="text-6xl font-black mb-2"
+                                        style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                        ₹9
+                                    </motion.div>
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Instant access • Lifetime unlock</div>
+                                </motion.div>
+
+                                {/* Payment methods info */}
+                                <div className="mb-6 p-4 rounded-lg" style={{ background: 'rgba(90, 158, 90, 0.1)' }}>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }} className="mb-2">We accept:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['UPI', 'Cards', 'NetBanking'].map((method) => (
+                                            <span key={method} className="px-3 py-1 rounded text-sm font-semibold" style={{ background: 'rgba(90, 158, 90, 0.2)', color: '#5A9E5A' }}>
+                                                {method}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* CTA Buttons */}
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            setPaymentStatus('loading');
+                                            setErrorMsg('');
+                                            // Redirect to login to start authenticated payment flow
+                                            navigate('/login?redirect=dashboard');
+                                        } catch (err: any) {
+                                            setErrorMsg(err.message || 'Something went wrong');
+                                            setPaymentStatus('error');
+                                        }
+                                    }}
+                                    disabled={paymentStatus === 'loading'}
+                                    className="w-full px-6 py-4 rounded-xl font-bold text-white text-lg transition-all mb-3"
+                                    style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)', boxShadow: '0 8px 32px rgba(245,166,35,0.35)', opacity: paymentStatus === 'loading' ? 0.7 : 1 }}
+                                    onMouseEnter={(e) => { if (paymentStatus === 'idle') (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}>
+                                    {paymentStatus === 'loading' ? (
+                                        <>
+                                            <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity }} className="inline-block mr-2">⏳</motion.span>
+                                            Redirecting to Payment...
+                                        </>
+                                    ) : paymentStatus === 'error' ? (
+                                        <>❌ {errorMsg}</> 
+                                    ) : (
+                                        <>
+                                            <Zap className="w-5 h-5 inline mr-2" /> Pay ₹9 & Unlock
+                                        </>
+                                    )}
+                                </button>
+
+                                <Link to="/register"
+                                    className="w-full px-6 py-3 rounded-xl font-bold text-center transition-colors text-sm"
+                                    style={{ color: 'var(--text)', border: '2px solid var(--border)', background: 'var(--surface)' }}
+                                    onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { (e.currentTarget as HTMLElement).style.borderColor = '#F5A623'; }}
+                                    onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}>
+                                    Sign Up for Free First
+                                </Link>
+
+                                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '16px', lineHeight: '1.5' }} className="text-center">
+                                    💡 Sign up first, then unlock premium for ₹9 • Secure payment powered by Razorpay
+                                </p>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+
             {/* ── Stats ──────────────────────────────────────────── */}
-            <section id="stats" className="py-24 px-6">
+            <section className="py-24 px-6">
                 <div className="max-w-4xl mx-auto">
                     <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={stagger}>
                         <motion.div variants={fadeUp} className="text-center mb-14">

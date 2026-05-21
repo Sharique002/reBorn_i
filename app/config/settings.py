@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_PREFIX: str = "/api/v1"
     CORS_ORIGINS: str = "*"
+    FRONTEND_URL: str = ""
 
     # ── Database ─────────────────────────────────────────────
     DATABASE_URL: str = "postgresql+asyncpg://reborn:reborn@localhost:5432/reborn_db"
@@ -94,6 +95,7 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": True,
+        "extra": "ignore",
     }
 
 

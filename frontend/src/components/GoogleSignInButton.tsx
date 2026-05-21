@@ -33,9 +33,15 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
   const { googleLogin } = useAuth();
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLDivElement>(null);
+  const callbacksRef = useRef({ googleLogin, navigate, onError });
+  const renderedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [gsiReady, setGsiReady] = useState(false);
   const [gsiError, setGsiError] = useState(false);
+
+  useEffect(() => {
+    callbacksRef.current = { googleLogin, navigate, onError };
+  }, [googleLogin, navigate, onError]);
 
   useEffect(() => {
     // Wait for Google Identity Services to load
@@ -43,11 +49,13 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
     const checkGSI = () => {
       if (window.google?.accounts?.id) {
         setGsiReady(true);
+        // Script loaded successfully
         return;
       }
       attempts++;
       if (attempts > 50) {
         // GSI script didn't load after ~5 seconds — skip silently
+        console.warn('[GSI] Google Identity Services failed to load after 5 seconds');
         setGsiError(true);
         return;
       }
@@ -57,32 +65,39 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
   }, []);
 
   useEffect(() => {
-    if (!gsiReady || !buttonRef.current || !GOOGLE_CLIENT_ID) return;
+    if (!gsiReady || !buttonRef.current || !GOOGLE_CLIENT_ID || renderedRef.current) {
+      console.warn('[GSI] Not rendering button - gsiReady:', gsiReady, 'buttonRef:', !!buttonRef.current, 'clientId:', !!GOOGLE_CLIENT_ID);
+      return;
+    }
 
     try {
+      const buttonEl = buttonRef.current;
+      buttonEl.innerHTML = '';
+      // Initialize client
       window.google!.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: async (response: { credential: string }) => {
+          // Successfully received credential
           setLoading(true);
           try {
-            await googleLogin(response.credential);
-            navigate('/dashboard');
+            await callbacksRef.current.googleLogin(response.credential);
+            // Successful auth handling
+            callbacksRef.current.navigate('/dashboard');
           } catch (err: any) {
+            console.error('[GSI] Login failed:', err);
             const msg = err.message || 'Google sign-in failed';
-            onError?.(msg);
+            callbacksRef.current.onError?.(msg);
           } finally {
             setLoading(false);
           }
         },
         auto_select: false,
         ux_mode: 'popup',
-        // Add context and origin for better debugging
         context: 'signin',
-        // Cancel callback for popup close
         cancel_on_tap_outside: false,
       });
 
-      window.google!.accounts.id.renderButton(buttonRef.current, {
+      window.google!.accounts.id.renderButton(buttonEl, {
         type: 'standard',
         theme: 'filled_black',
         size: 'large',
@@ -91,15 +106,17 @@ export default function GoogleSignInButton({ onError, className }: GoogleSignInB
         width: 400,
         logo_alignment: 'left',
       });
+      renderedRef.current = true;
+      // Button rendered
     } catch (err) {
-      // GSI initialization failed (e.g. origin not allowed) — log and hide button
-      console.error('Google Sign-In initialization failed:', err);
+      console.error('[GSI] Initialization failed:', err);
       setGsiError(true);
     }
-  }, [gsiReady, googleLogin, navigate, onError]);
+  }, [gsiReady]);
 
   if (!GOOGLE_CLIENT_ID || gsiError) {
-    return null; // Don't render if no client ID configured or GSI failed to load
+    console.warn('[GSI] Not rendering - clientId missing or error state');
+    return null;
   }
 
   return (

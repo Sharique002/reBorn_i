@@ -1,7 +1,0 @@
-# reBorn_i — From Rejection to Reinvention.
-
-[project]
-name = "reborni"
-version = "1.0.0"
-description = "From Rejection to Reinvention — AI-powered career intelligence platform"
-requires-python = ">=3.10"

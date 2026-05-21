@@ -5,7 +5,9 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMemo } from 'react';
+import { Sparkles } from 'lucide-react';
 import Sidebar from './Sidebar';
+import { useSubscription } from '../modules/subscription';
 import {
   DashboardIllustration,
   ResumeIllustration,
@@ -354,6 +356,37 @@ function Topbar() {
   );
 }
 
+/* ── Mobile Sticky Upgrade CTA ──────────────────────── */
+function MobileStickyUpgrade() {
+  const { isPro, startUpgrade, isProcessing } = useSubscription();
+
+  if (isPro) return null;
+
+  return (
+    <div className="mobile-sticky-cta">
+      <button
+        type="button"
+        disabled={isProcessing}
+        onClick={() => startUpgrade().catch(() => {})}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold text-white shadow-[0_4px_16px_rgba(245,166,35,0.3)] disabled:opacity-70"
+        style={{ background: 'linear-gradient(135deg, #F5A623, #FF8C42)' }}
+      >
+        {isProcessing ? (
+          <>
+            <motion.span animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>⏳</motion.span>
+            Opening Razorpay...
+          </>
+        ) : (
+          <>
+            <Sparkles className="h-4 w-4" />
+            Unlock Full Report for ₹9
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 /* ── Main Layout ─────────────────────────────────────── */
 export default function Layout() {
   return (
@@ -365,13 +398,14 @@ export default function Layout() {
         <main className="flex-1 overflow-y-auto relative z-10">
           {/* Route-aware background character */}
           <BackgroundIllustration />
-          <div className="max-w-7xl mx-auto px-8 py-8 relative z-10">
+          <div className="max-w-7xl mx-auto px-8 py-8 relative z-10 pb-24 lg:pb-8">
             <PageTransition>
               <Outlet />
             </PageTransition>
           </div>
         </main>
       </div>
+      <MobileStickyUpgrade />
     </div>
   );
 }

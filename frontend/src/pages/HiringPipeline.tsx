@@ -4,7 +4,8 @@ import { hiringPipelineAPI } from '../api/client';
 import type { HiringPipelineResponse, HiringPipelineRequest } from '../types';
 import ScoreGauge from '../components/ScoreGauge';
 import { HiringIllustration } from '../components/Illustrations';
-import SubscriptionGuard from '../components/SubscriptionGuard';
+import SubscriptionGuard from '../modules/subscription/components/SubscriptionGuard';
+import { useSubscription } from '../modules/subscription';
 import {
   Filter, Loader2, AlertCircle, TrendingDown, Target, BarChart3,
   CheckCircle2, Activity, ChevronRight, Info, Lightbulb, ShieldAlert,
@@ -15,6 +16,7 @@ import AnimatedButton from '../components/AnimatedButton';
 const cItem = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function HiringPipeline() {
+  const { isPro } = useSubscription();
   const [formData, setFormData] = useState<HiringPipelineRequest>({
     ATS_risk: 0.3, Recruiter_risk: 0.4, Market_risk: 0.35,
     Grammar_risk: 0.1, Formatting_risk: 0.05, domain: 'TECH',
@@ -50,6 +52,10 @@ export default function HiringPipeline() {
     { id: 'Grammar_risk', label: 'Grammar Risk', icon: Info, accent: 'violet' },
     { id: 'Formatting_risk', label: 'Formatting Risk', icon: Filter, accent: 'green' },
   ];
+
+  const unlockedProbability = result
+    ? Math.min(result.pipeline_survival.Final_Interview_Probability + 0.19, 0.92)
+    : 0;
 
   return (
     <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.08 } } }} className="space-y-6">
@@ -204,6 +210,14 @@ export default function HiringPipeline() {
                       <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-bark leading-relaxed italic">"{result.behavior_guidance_message}"</p>
                     </div>
+                    {!isPro && (
+                      <div className="rounded-2xl border border-sky-100 bg-sky-50 p-4 text-left">
+                        <p className="text-xs font-black uppercase tracking-wider text-sky-700">Pro preview</p>
+                        <p className="mt-1 text-sm text-bark">
+                          Improve your probability from {(result.pipeline_survival.Final_Interview_Probability * 100).toFixed(0)}% to {(unlockedProbability * 100).toFixed(0)}%. Unlock to see the specific moves behind the lift.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
 
@@ -262,7 +276,7 @@ export default function HiringPipeline() {
                 </motion.div>
 
                 {/* Diagnosis - LOCKED FOR FREE USERS */}
-                <SubscriptionGuard requiresPro={true}>
+                <SubscriptionGuard feature="diagnosis" requiresPro={true}>
                   <motion.div variants={cItem} className="card">
                     <h3 className="font-display font-bold text-sm text-bark flex items-center gap-2 mb-3">
                       <Info className="w-4 h-4 text-warm-500" /> Critical Diagnosis
@@ -272,7 +286,7 @@ export default function HiringPipeline() {
                 </SubscriptionGuard>
 
                 {/* Improvements - LOCKED FOR FREE USERS */}
-                <SubscriptionGuard requiresPro={true}>
+                <SubscriptionGuard feature="action_plan" requiresPro={true}>
                   <motion.div variants={cItem} className="card">
                     <h3 className="font-display font-bold text-sm text-bark flex items-center gap-2 mb-4">
                       <CheckCircle2 className="w-4 h-4 text-green-500" /> Strategic Roadmaps
@@ -295,7 +309,7 @@ export default function HiringPipeline() {
 
                 {/* Chart - LOCKED FOR FREE USERS */}
                 {result.chart_base64 && (
-                  <SubscriptionGuard requiresPro={true}>
+                  <SubscriptionGuard feature="pipeline_breakdown" requiresPro={true}>
                     <motion.div variants={cItem} className="card overflow-hidden">
                       <h3 className="font-display font-bold text-sm text-bark flex items-center gap-2 mb-4">
                         <BarChart3 className="w-4 h-4 text-warm-500" /> Statistical Visualization

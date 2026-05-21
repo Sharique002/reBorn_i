@@ -41,20 +41,10 @@ class ResumeProcessingError(ReBornBaseError):
     pass
 
 
-class ResumeNotFoundError(ReBornBaseError):
-    """Raised when a resume ID is not found in the database."""
-    pass
-
-
 # ── Scoring & Analysis Errors ───────────────────────────────
 
 class ScoringError(ReBornBaseError):
     """Raised when the rejection scoring engine encounters an error."""
-    pass
-
-
-class EmbeddingError(ReBornBaseError):
-    """Raised when embedding generation fails."""
     pass
 
 

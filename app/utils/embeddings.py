@@ -20,7 +20,6 @@ from typing import Dict, List, Optional
 from cachetools import TTLCache
 
 from app.config.settings import get_settings
-from app.utils.exceptions import EmbeddingError
 from app.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -203,82 +202,6 @@ def generate_embedding(text: str) -> List[float]:
         logger.error("embedding_keyword_fallback_failed", error=str(e))
         return [0.0]
 
-
-def generate_embeddings_batch(texts: List[str]) -> List[List[float]]:
-    """Generate embeddings for multiple texts in a batch.
-
-    NEVER CRASHES — uses fallback for any failures.
-
-    Args:
-        texts: List of input texts.
-
-    Returns:
-        List of embedding vectors.
-    """
-    if not texts:
-        return []
-
-    cache = _get_cache()
-    results: List[Optional[List[float]]] = [None] * len(texts)
-    uncached_indices: List[int] = []
-    uncached_texts: List[str] = []
-
-    # Check cache first
-    for i, text in enumerate(texts):
-        if not text or not text.strip():
-            results[i] = [0.0]
-            continue
-        cache_key = hash(text.strip())
-        if cache_key in cache:
-            results[i] = cache[cache_key]
-        else:
-            uncached_indices.append(i)
-            uncached_texts.append(text.strip())
-
-    # Generate embeddings for uncached texts
-    if uncached_texts:
-        openai_success = False
-        try:
-            client = _get_openai_client()
-            if client is not None:
-                response = client.embeddings.create(
-                    model="text-embedding-3-small",
-                    input=[t[:8000] for t in uncached_texts],
-                )
-                for j, embedding_data in enumerate(response.data):
-                    idx = uncached_indices[j]
-                    result = embedding_data.embedding
-                    results[idx] = result
-                    cache[hash(uncached_texts[j])] = result
-                openai_success = True
-                logger.info("batch_embeddings_openai_success", count=len(uncached_texts))
-        except Exception as e:
-            logger.warning("batch_embedding_openai_failed_using_fallback", error=str(e))
-
-        # Fallback for any missing results
-        if not openai_success:
-            for j, text in enumerate(uncached_texts):
-                idx = uncached_indices[j]
-                if results[idx] is None:
-                    vector = _text_to_vector(text)
-                    result = list(vector.values()) if vector else [0.0]
-                    results[idx] = result
-                    cache[hash(text)] = result
-            logger.info("batch_embeddings_keyword_fallback", count=len(uncached_texts))
-
-    # Ensure no None values remain
-    for i in range(len(results)):
-        if results[i] is None:
-            results[i] = [0.0]
-
-    logger.info(
-        "batch_embeddings_complete",
-        total=len(texts),
-        cached=len(texts) - len(uncached_texts),
-        generated=len(uncached_texts),
-    )
-
-    return results  # type: ignore
 
 
 def compute_cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:

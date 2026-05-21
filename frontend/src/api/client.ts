@@ -19,6 +19,7 @@ import type {
   PaymentCreateResponse,
   PaymentVerifyRequest,
   PaymentVerifyResponse,
+  SubscriptionStatusResponse,
 } from '../types';
 
 const apiBase = import.meta.env.VITE_API_URL
@@ -43,9 +44,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    const detail = err.response?.data?.detail;
+    if (detail && typeof detail === 'object' && 'upgradeMessage' in detail) {
+      err.response.data.detail = detail.upgradeMessage;
+    }
     if (err.response?.status === 401) {
       localStorage.removeItem('token');
-      if (window.location.pathname !== '/login') {
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register' && path !== '/') {
         window.location.href = '/login';
       }
     }
@@ -146,11 +152,17 @@ export const paymentAPI = {
   createOrder: () =>
     api.post<PaymentCreateResponse>('/payment/create-order', {}),
 
-  verifyPayment: (razorpay_payment_id: string, razorpay_signature: string) =>
+  verifyPayment: (razorpay_order_id: string, razorpay_payment_id: string, razorpay_signature: string) =>
     api.post<PaymentVerifyResponse>('/payment/verify', {
+      razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
     }),
+};
+
+export const subscriptionAPI = {
+  status: () =>
+    api.get<SubscriptionStatusResponse>('/subscription/status'),
 };
 
 export default api;

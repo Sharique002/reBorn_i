@@ -2,6 +2,7 @@ import { useState, useRef, type DragEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resumeAPI } from '../api/client';
 import type { ResumeUploadResponse } from '../types';
+import { PaywallOverlay, useSubscription } from '../modules/subscription';
 import { ResumeIllustration } from '../components/Illustrations';
 import {
   Upload, FileText, CheckCircle2, AlertCircle, Loader2,
@@ -13,13 +14,17 @@ import { ConfettiBurst } from '../components/Animations';
 const cItem = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
 export default function ResumeUpload() {
+  const { plan, usageCount, incrementUsage, getFeatureGate } = useSubscription();
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<ResumeUploadResponse | null>(null);
   const [error, setError] = useState('');
+  const [showUploadPaywall, setShowUploadPaywall] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const uploadLocked = plan !== 'pro' && usageCount >= 1;
 
   const handleDrag = (e: DragEvent) => {
     e.preventDefault();
@@ -33,24 +38,45 @@ export default function ResumeUpload() {
     e.stopPropagation();
     setDragActive(false);
     const dropped = e.dataTransfer?.files?.[0];
-    if (dropped?.type === 'application/pdf') { setFile(dropped); setError(''); }
+    if (dropped?.type === 'application/pdf') { setFile(dropped); setError(''); setShowUploadPaywall(false); }
     else setError('Only PDF files are accepted');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (f) { setFile(f); setError(''); }
+    if (f) { setFile(f); setError(''); setShowUploadPaywall(false); }
   };
 
   const handleUpload = async () => {
     if (!file) return;
+    if (uploadLocked) {
+      setShowUploadPaywall(true);
+      setError('');
+      return;
+    }
     setUploading(true); setError(''); setResult(null);
     try {
       const { data } = await resumeAPI.upload(file);
       setResult(data);
+      incrementUsage();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.response?.data?.detail || 'Upload failed');
+      const detail = err.response?.data?.detail;
+      if (err.response?.status === 402 || detail?.isLocked) {
+        setShowUploadPaywall(true);
+        setError('');
+      } else {
+        setError(err.response?.data?.message || detail || 'Upload failed');
+      }
     } finally { setUploading(false); }
+  };
+
+  const handleUploadAnother = () => {
+    if (uploadLocked) {
+      setShowUploadPaywall(true);
+      return;
+    }
+    setFile(null);
+    setResult(null);
   };
 
   const copyId = () => {
@@ -120,6 +146,23 @@ export default function ResumeUpload() {
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           className="flex items-center gap-2 rounded-2xl px-4 py-3 bg-rose-50 border border-rose-200 text-rose-600">
           <AlertCircle className="w-4 h-4 flex-shrink-0" /><span className="text-sm font-medium">{error}</span>
+        </motion.div>
+      )}
+
+      {showUploadPaywall && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative min-h-[290px]">
+          <div className="card pointer-events-none select-none opacity-50 blur-[2px]">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-warm-100">
+                <Upload className="h-6 w-6 text-warm-500" />
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-bark">Analyze another resume</h3>
+                <p className="text-sm text-dusk">Compare versions, track progress, and keep improving your odds.</p>
+              </div>
+            </div>
+          </div>
+          <PaywallOverlay feature="resume_upload" gate={getFeatureGate('resume_upload')} />
         </motion.div>
       )}
 
@@ -230,7 +273,7 @@ export default function ResumeUpload() {
 
             {/* Upload another */}
             <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
-              onClick={() => { setFile(null); setResult(null); }}
+              onClick={handleUploadAnother}
               className="btn-secondary">
               Upload Another Resume
             </motion.button>

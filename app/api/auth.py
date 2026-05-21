@@ -202,6 +202,7 @@ async def register_user(user_data: UserCreate, db: AsyncSession) -> User:
     db.add(user)
     await db.flush()
     await db.refresh(user)
+    await db.commit()
 
     logger.info("user_registered", user_id=str(user.id))
     return user
@@ -264,6 +265,7 @@ async def google_authenticate(id_token: str, db: AsyncSession) -> tuple[User, bo
             id_token,
             google_requests.Request(),
             settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=30,
         )
         logger.info("google_token_verified", sub=idinfo.get("sub", "unknown")[:8])
     except ValueError as e:
@@ -324,6 +326,7 @@ async def google_authenticate(id_token: str, db: AsyncSession) -> tuple[User, bo
             user.full_name = full_name
         await db.flush()
         await db.refresh(user)
+        await db.commit()
     else:
         # Create new user
         user = User(
@@ -337,6 +340,7 @@ async def google_authenticate(id_token: str, db: AsyncSession) -> tuple[User, bo
         db.add(user)
         await db.flush()
         await db.refresh(user)
+        await db.commit()
         is_new = True
         logger.info("user_registered_google", user_id=str(user.id))
 

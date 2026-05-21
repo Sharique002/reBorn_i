@@ -56,6 +56,8 @@ from app.schemas.schemas import (
     RejectionAnalysisRequest,
     RejectionAnalysisResponse,
     ResumeUploadResponse,
+    SubscriptionFeatureGate,
+    SubscriptionStatusResponse,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -105,6 +107,7 @@ simulation_router = APIRouter(prefix="/simulation", tags=["Career Simulation"])
 blueprint_router = APIRouter(prefix="/blueprint", tags=["Reinvention Blueprint"])
 hiring_pipeline_router = APIRouter(prefix="/hiring-pipeline", tags=["Hiring Pipeline"])
 payment_router = APIRouter(prefix="/payment", tags=["Payments"])
+subscription_router = APIRouter(prefix="/subscription", tags=["Subscription"])
 health_router = APIRouter(tags=["System Health"])
 
 
@@ -966,8 +969,21 @@ async def create_payment_order(
             "currency": "INR",
             "receipt": f"order_{current_user.id}_{uuid.uuid4().hex[:8]}",
         }
-        razorpay_order = rzp_client.order.create(data=order_data)
-        order_id = razorpay_order["id"]
+        try:
+            razorpay_order = rzp_client.order.create(data=order_data)
+            order_id = razorpay_order["id"]
+            is_mock_flow = False
+        except Exception as rzp_err:
+            if settings.ENVIRONMENT == "development":
+                logger.warning(
+                    "razorpay_order_creation_failed_using_mock_fallback",
+                    error=str(rzp_err),
+                    user_id=current_user.id,
+                )
+                order_id = f"order_mock_{uuid.uuid4().hex[:12]}"
+                is_mock_flow = True
+            else:
+                raise rzp_err
 
         # Create payment record in database
         payment_service = PaymentService(settings.RAZORPAY_KEY_SECRET)
@@ -983,6 +999,7 @@ async def create_payment_order(
             "payment_order_created",
             user_id=current_user.id,
             order_id=order_id,
+            is_mock=is_mock_flow,
         )
 
         return PaymentResponse(
@@ -1027,10 +1044,10 @@ async def verify_payment(
         from app.config.settings import get_settings
         settings = get_settings()
 
-        # Get the payment record to extract order_id
+        # Look up the payment record by order_id (payment_id isn't stored yet)
         result = await db.execute(
             select(Payment).where(
-                Payment.razorpay_payment_id == request.razorpay_payment_id,
+                Payment.razorpay_order_id == request.razorpay_order_id,
                 Payment.user_id == current_user.id,
             )
         )
@@ -1040,7 +1057,7 @@ async def verify_payment(
             logger.warning(
                 "payment_not_found_for_verification",
                 user_id=current_user.id,
-                payment_id=request.razorpay_payment_id,
+                order_id=request.razorpay_order_id,
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -1056,6 +1073,7 @@ async def verify_payment(
                 razorpay_order_id=payment.razorpay_order_id,
                 razorpay_payment_id=request.razorpay_payment_id,
                 signature=request.razorpay_signature,
+                is_dev=(settings.ENVIRONMENT == "development"),
             )
 
             if success:
@@ -1095,4 +1113,40 @@ async def verify_payment(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Payment verification failed. Please try again.",
         )
+
+
+# ═══════════════════════════════════════════════════════════
+# Subscription Endpoints
+# ═══════════════════════════════════════════════════════════
+
+@subscription_router.get("/status", response_model=SubscriptionStatusResponse)
+async def get_subscription_status(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get the current user's subscription status from the database.
+
+    This is the ONLY source of truth for subscription state.
+    Frontend must call this to verify premium access.
+
+    Returns:
+        Subscription status with plan, usage count, and feature access.
+    """
+    # Count user's analyses for usage tracking
+    result = await db.execute(
+        select(RejectionAnalysis)
+        .where(RejectionAnalysis.user_id == current_user.id)
+    )
+    analyses = result.scalars().all()
+    usage_count = len(analyses)
+
+    plan = current_user.subscription_plan or "free"
+    has_access = plan == "pro"
+
+    return SubscriptionStatusResponse(
+        plan=plan,
+        usageCount=usage_count,
+        hasAccess=has_access,
+        featureAccess={},
+    )
 

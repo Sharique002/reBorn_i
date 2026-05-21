@@ -35,6 +35,18 @@ def get_engine():
                 connect_args={"check_same_thread": False},
                 poolclass=StaticPool,
             )
+
+            # SQLite optimizations: WAL mode, NORMAL synchronous, and foreign keys
+            from sqlalchemy import event
+            @event.listens_for(_engine.sync_engine, "connect")
+            def set_sqlite_pragma(dbapi_connection, connection_record):
+                cursor = dbapi_connection.cursor()
+                try:
+                    cursor.execute("PRAGMA journal_mode=WAL")
+                    cursor.execute("PRAGMA synchronous=NORMAL")
+                    cursor.execute("PRAGMA foreign_keys=ON")
+                finally:
+                    cursor.close()
         else:
             _engine = create_async_engine(
                 url,

@@ -368,6 +368,7 @@ class PaymentCreateRequest(BaseModel):
 
 class PaymentVerifyRequest(BaseModel):
     """Request to verify and complete a payment."""
+    razorpay_order_id: str = Field(..., min_length=1, description="Razorpay order ID")
     razorpay_payment_id: str = Field(..., min_length=1, description="Razorpay payment ID")
     razorpay_signature: str = Field(..., min_length=1, description="Razorpay signature for verification")
 
@@ -390,3 +391,46 @@ class PaymentVerifyResponse(BaseModel):
     message: str
     subscription_plan: str = "pro"  # After successful verification
 
+
+# ═══════════════════════════════════════════════════════════
+# Subscription / Paywall Schemas
+# ═══════════════════════════════════════════════════════════
+
+class SubscriptionFeatureGate(BaseModel):
+    """Feature access metadata used by frontend paywalls."""
+    isLocked: bool
+    upgradeMessage: str
+    featureName: str
+
+
+class SubscriptionStatusResponse(BaseModel):
+    """Current user's subscription and usage state."""
+    plan: str = "free"
+    usageCount: int = 0
+    hasAccess: bool = False
+    featureAccess: Dict[str, SubscriptionFeatureGate] = Field(default_factory=dict)
+
+
+class StripeCheckoutRequest(BaseModel):
+    """Request to start a Stripe Checkout subscription flow."""
+    feature: Optional[str] = Field(None, max_length=80)
+
+
+class StripeCheckoutResponse(BaseModel):
+    """Stripe Checkout redirect details."""
+    checkout_url: str
+    session_id: str
+    provider: str = "stripe"
+    mode: str = "checkout"
+
+
+class StripeCheckoutConfirmRequest(BaseModel):
+    """Request to confirm a successful checkout session."""
+    session_id: str = Field(..., min_length=1, max_length=255)
+
+
+class SubscriptionUpgradeResponse(BaseModel):
+    """Response after successful subscription activation."""
+    success: bool
+    message: str
+    subscription_plan: str = "pro"

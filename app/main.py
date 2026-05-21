@@ -28,6 +28,7 @@ from app.api.routes import (
     payment_router,
     resume_router,
     simulation_router,
+    subscription_router,
 )
 from app.config.settings import get_settings
 from app.utils.database import close_db, init_db
@@ -93,7 +94,14 @@ def create_app() -> FastAPI:
     )
 
     # ── CORS Middleware ──────────────────────────────────────
-    origins = settings.CORS_ORIGINS.split(",") if settings.CORS_ORIGINS != "*" else ["*"]
+    if settings.CORS_ORIGINS == "*":
+        origins = ["*"]
+    else:
+        origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+    if settings.FRONTEND_URL and origins != ["*"]:
+        frontend = settings.FRONTEND_URL.rstrip("/")
+        if frontend and frontend not in origins:
+            origins.append(frontend)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -125,6 +133,7 @@ def create_app() -> FastAPI:
     app.include_router(blueprint_router, prefix=prefix)
     app.include_router(hiring_pipeline_router, prefix=prefix)
     app.include_router(payment_router, prefix=prefix)
+    app.include_router(subscription_router, prefix=prefix)
 
     # ── Global Exception Handlers ────────────────────────────
 

@@ -85,29 +85,6 @@ def check_prompt_injection(text: str) -> None:
             )
 
 
-def validate_text_length(
-    text: str, field_name: str, min_len: int = 1, max_len: int = 50000
-) -> str:
-    """Validate text length constraints after stripping whitespace.
-
-    Args:
-        text: The text to validate.
-        field_name: Name of the field (for error messages).
-        min_len: Minimum allowed length.
-        max_len: Maximum allowed length.
-
-    Returns:
-        Stripped text if valid.
-
-    Raises:
-        ValueError: If text is shorter than min_len or longer than max_len.
-    """
-    text = text.strip()
-    if len(text) < min_len:
-        raise ValueError(f"{field_name} must be at least {min_len} characters.")
-    if len(text) > max_len:
-        raise ValueError(f"{field_name} must not exceed {max_len} characters.")
-    return text
 
 
 async def validate_upload_file(file: UploadFile) -> bytes:

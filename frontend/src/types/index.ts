@@ -253,6 +253,7 @@ export interface PaymentCreateResponse {
 }
 
 export interface PaymentVerifyRequest {
+  razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
 }
@@ -261,4 +262,25 @@ export interface PaymentVerifyResponse {
   success: boolean;
   message: string;
   subscription_plan: string;
+}
+
+// ── Subscription / Paywall ─────────────────────────────
+
+export interface SubscriptionFeatureGate {
+  isLocked: boolean;
+  upgradeMessage: string;
+  featureName: string;
+}
+
+export interface SubscriptionStatusResponse {
+  plan: 'free' | 'pro';
+  usageCount: number;
+  hasAccess: boolean;
+  featureAccess: Record<string, SubscriptionFeatureGate>;
+}
+
+export interface SubscriptionUpgradeResponse {
+  success: boolean;
+  message: string;
+  subscription_plan: 'free' | 'pro';
 }

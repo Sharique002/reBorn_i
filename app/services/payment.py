@@ -111,6 +111,7 @@ class PaymentService:
         razorpay_order_id: str,
         razorpay_payment_id: str,
         signature: str,
+        is_dev: bool = False,
     ) -> bool:
         """
         Verify payment signature and upgrade user subscription.
@@ -121,6 +122,7 @@ class PaymentService:
             razorpay_order_id: Order ID
             razorpay_payment_id: Payment ID
             signature: Razorpay signature
+            is_dev: Whether running in development fallback mode
 
         Returns:
             True if verification and upgrade succeeded
@@ -130,15 +132,23 @@ class PaymentService:
         """
         try:
             # Step 1: Verify signature
-            if not self.verify_razorpay_signature(
-                razorpay_order_id, razorpay_payment_id, signature
-            ):
-                logger.warning(
-                    "payment_signature_invalid",
+            is_mock = razorpay_order_id.startswith("order_mock_")
+            if is_mock and is_dev:
+                logger.info(
+                    "payment_signature_bypassed_for_mock_order",
                     order_id=razorpay_order_id,
                     user_id=user_id,
                 )
-                raise PaymentError("Invalid payment signature")
+            else:
+                if not self.verify_razorpay_signature(
+                    razorpay_order_id, razorpay_payment_id, signature
+                ):
+                    logger.warning(
+                        "payment_signature_invalid",
+                        order_id=razorpay_order_id,
+                        user_id=user_id,
+                    )
+                    raise PaymentError("Invalid payment signature")
 
             # Step 2: Find payment record
             result = await db.execute(
@@ -157,7 +167,19 @@ class PaymentService:
                 )
                 raise PaymentError("Payment record not found")
 
-            # Step 3: Check if already processed (idempotent)
+            # Step 3: Validate amount matches expected ₹9 (900 paisa)
+            EXPECTED_AMOUNT_PAISA = 900.0
+            if payment.amount != EXPECTED_AMOUNT_PAISA:
+                logger.warning(
+                    "payment_amount_mismatch",
+                    order_id=razorpay_order_id,
+                    user_id=user_id,
+                    expected=EXPECTED_AMOUNT_PAISA,
+                    actual=payment.amount,
+                )
+                raise PaymentError("Payment amount does not match expected amount")
+
+            # Step 4: Check if already processed (idempotent)
             if payment.status == "completed":
                 logger.info(
                     "payment_already_processed",
@@ -166,12 +188,12 @@ class PaymentService:
                 )
                 return True
 
-            # Step 4: Update payment record
+            # Step 5: Update payment record
             payment.razorpay_payment_id = razorpay_payment_id
             payment.status = "completed"
             payment.updated_at = datetime.now(timezone.utc)
 
-            # Step 5: Update user subscription
+            # Step 6: Update user subscription
             result = await db.execute(
                 select(User).where(User.id == user_id)
             )

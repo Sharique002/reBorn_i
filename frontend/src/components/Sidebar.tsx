@@ -5,10 +5,11 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../modules/subscription';
 import {
   LayoutDashboard, FileUp, ShieldAlert, Radar, GitCompareArrows,
   Map, LogOut, UserCircle, Filter, Flower2, Compass, Brain,
-  TrendingUp, Briefcase, ListChecks,
+  TrendingUp, Briefcase, ListChecks, CreditCard,
 } from 'lucide-react';
 
 const GROUPS = [
@@ -56,6 +57,7 @@ const navItemVariants = {
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { plan } = useSubscription();
   const navigate = useNavigate();
 
   const handleLogout = () => { logout(); navigate('/login'); };
@@ -134,6 +136,19 @@ export default function Sidebar() {
 
       {/* User footer */}
       <div className="px-3 py-3" style={{ borderTop: '1px solid var(--border)' }}>
+        <NavLink to="/pricing"
+          className="mb-2 flex items-center gap-3 rounded-xl px-3 py-2 transition-all hover:bg-warm-50"
+          style={({ isActive }: { isActive: boolean }) => ({
+            background: isActive ? 'rgba(245,166,35,0.08)' : 'transparent',
+          })}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-warm-50">
+            <CreditCard className="w-4 h-4 text-warm-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-bark">Plan</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted">{plan === 'pro' ? 'Pro active' : 'Free tier'}</p>
+          </div>
+        </NavLink>
         <NavLink to="/profile"
           className="flex items-center gap-3 px-3 mb-2 rounded-xl py-2 transition-all hover:bg-warm-50"
           style={({ isActive }: { isActive: boolean }) => ({

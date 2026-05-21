@@ -20,6 +20,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName?: string) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
+  refreshUser: () => Promise<User | null>;
   logout: () => void;
 }
 
@@ -48,14 +49,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = useCallback(async () => {
+    if (!localStorage.getItem('token')) {
+      setUser(null);
+      return null;
+    }
+    const { data } = await authAPI.me();
+    setUser(data);
+    return data;
+  }, []);
+
   const fetchUser = useCallback(async () => {
     if (!token) {
       setLoading(false);
       return;
     }
     try {
-      const { data } = await authAPI.me();
-      setUser(data);
+      await refreshUser();
     } catch {
       localStorage.removeItem('token');
       setToken(null);
@@ -63,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [refreshUser, token]);
 
   useEffect(() => {
     fetchUser();
@@ -111,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, googleLogin, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, googleLogin, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════
-// reBorn_i — Dashboard Page (All 10 Modules)
+// reBorn_i — Dashboard Page (Premium SaaS Experience)
 // ═══════════════════════════════════════════════════════════
 
 import { useEffect, useState } from 'react';
@@ -7,26 +7,32 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { healthAPI } from '../api/client';
+import { useSubscription } from '../modules/subscription';
 import { DashboardIllustration } from '../components/Illustrations';
 import { PulsingDot } from '../components/Animations';
+import DashboardPipelineCards from '../components/DashboardPipelineCards';
+import PremiumConversionCard from '../components/PremiumConversionCard';
+import PostPaymentCelebration from '../components/PostPaymentCelebration';
 import {
   FileText, ShieldAlert, Globe2, Compass, Map, Filter,
   Brain, TrendingUp, Briefcase, ListChecks, GitCompareArrows,
-  ArrowRight, Sparkles, CheckCircle2, AlertTriangle, XCircle, Flower2,
+  ArrowRight, Sparkles, CheckCircle2, AlertTriangle, XCircle, Flower2, LockKeyhole,
+  Activity, Target, BarChart3, Lock,
 } from 'lucide-react';
+import type { SubscriptionFeature } from '../modules/subscription';
 
 const modules = [
-  { to: '/resume', icon: FileText, title: 'Resume Upload', desc: 'Parse & score resume', gradient: 'from-amber-50 to-orange-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', badge: null },
-  { to: '/pipeline', icon: Filter, title: 'Hiring Pipeline', desc: 'Survival probability', gradient: 'from-sky-50 to-cyan-50', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', badge: 'Core' },
-  { to: '/analysis', icon: ShieldAlert, title: 'Rejection Risk', desc: 'AI risk assessment', gradient: 'from-rose-50 to-pink-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', badge: null },
-  { to: '/simulation', icon: GitCompareArrows, title: 'Skill Simulator', desc: 'Simulate skill changes', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: null },
-  { to: '/pivot', icon: Compass, title: 'Career Pivot', desc: 'Find alt career paths', gradient: 'from-violet-50 to-indigo-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: 'New' },
+  { to: '/resume', icon: FileText, title: 'Resume Upload', desc: 'Parse & score resume', gradient: 'from-amber-50 to-orange-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', badge: null, feature: null },
+  { to: '/pipeline', icon: Filter, title: 'Hiring Pipeline', desc: 'Survival probability', gradient: 'from-sky-50 to-cyan-50', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', badge: 'Core', feature: 'pipeline_basic' as SubscriptionFeature },
+  { to: '/analysis', icon: ShieldAlert, title: 'Rejection Risk', desc: 'AI risk assessment', gradient: 'from-rose-50 to-pink-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', badge: null, feature: 'diagnosis' as SubscriptionFeature },
+  { to: '/simulation', icon: GitCompareArrows, title: 'Skill Simulator', desc: 'Simulate skill changes', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: null, feature: 'simulation' as SubscriptionFeature },
+  { to: '/pivot', icon: Compass, title: 'Career Pivot', desc: 'Find alt career paths', gradient: 'from-violet-50 to-indigo-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: 'New', feature: 'career_pivot' as SubscriptionFeature },
   { to: '/interview', icon: Brain, title: 'Interview Readiness', desc: 'Prep score & radar', gradient: 'from-sky-50 to-blue-50', iconBg: 'bg-sky-100', iconColor: 'text-sky-600', badge: 'New' },
-  { to: '/tracker', icon: TrendingUp, title: 'Resume Tracker', desc: 'Version score history', gradient: 'from-amber-50 to-yellow-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', badge: 'New' },
+  { to: '/tracker', icon: TrendingUp, title: 'Resume Tracker', desc: 'Version score history', gradient: 'from-amber-50 to-yellow-50', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', badge: 'New', feature: 'resume_tracking' as SubscriptionFeature },
   { to: '/market', icon: Globe2, title: 'Market Intelligence', desc: 'Skill demand trends', gradient: 'from-green-50 to-emerald-50', iconBg: 'bg-green-100', iconColor: 'text-green-600', badge: null },
-  { to: '/applications', icon: Briefcase, title: 'Applications', desc: 'Track & analyze rejections', gradient: 'from-rose-50 to-red-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', badge: 'New' },
-  { to: '/action-plan', icon: ListChecks, title: 'Action Plan', desc: '30-day structured roadmap', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: 'New' },
-  { to: '/blueprint', icon: Map, title: 'Blueprint', desc: '90-day career plan', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: null },
+  { to: '/applications', icon: Briefcase, title: 'Applications', desc: 'Track & analyze rejections', gradient: 'from-rose-50 to-red-50', iconBg: 'bg-rose-100', iconColor: 'text-rose-600', badge: 'New', feature: 'resume_tracking' as SubscriptionFeature },
+  { to: '/action-plan', icon: ListChecks, title: 'Action Plan', desc: '30-day structured roadmap', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: 'New', feature: 'action_plan' as SubscriptionFeature },
+  { to: '/blueprint', icon: Map, title: 'Blueprint', desc: '90-day career plan', gradient: 'from-violet-50 to-purple-50', iconBg: 'bg-violet-100', iconColor: 'text-violet-600', badge: null, feature: 'action_plan' as SubscriptionFeature },
 ];
 
 const flow = [
@@ -37,22 +43,49 @@ const flow = [
   { num: 5, label: 'Action Plan', desc: '30-day execution', icon: ListChecks, color: 'text-green-500' },
 ];
 
+const BLURRED_PREMIUM_SECTIONS = [
+  { title: 'Full Diagnosis', desc: 'Complete rejection analysis with layer-by-layer breakdown', icon: ShieldAlert, color: 'text-rose-500', bg: 'bg-rose-50' },
+  { title: 'Skill Gap Analysis', desc: 'Identify missing skills and priority gaps', icon: Target, color: 'text-amber-500', bg: 'bg-amber-50' },
+  { title: 'Career Pivot Suggestions', desc: 'Find adjacent roles and transition paths', icon: Compass, color: 'text-violet-500', bg: 'bg-violet-50' },
+  { title: 'Personalized Action Plan', desc: '30-day structured roadmap tailored to you', icon: ListChecks, color: 'text-green-500', bg: 'bg-green-50' },
+  { title: 'Resume Improvement Strategy', desc: 'ATS optimization and recruiter targeting', icon: FileText, color: 'text-sky-500', bg: 'bg-sky-50' },
+  { title: 'Market Intelligence', desc: 'Real-time skill demand and competition data', icon: BarChart3, color: 'text-warm-500', bg: 'bg-warm-50' },
+];
+
 type HealthStatus = 'loading' | 'healthy' | 'error';
 
 const cItem = { hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const } } };
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { getFeatureGate, isPro, status, resetStatus } = useSubscription();
   const [health, setHealth] = useState<HealthStatus>('loading');
+  const [showCelebration, setShowCelebration] = useState(false);
 
   useEffect(() => {
     healthAPI.check().then(() => setHealth('healthy')).catch(() => setHealth('error'));
   }, []);
 
+  // Show celebration on successful payment
+  useEffect(() => {
+    if (status === 'success') {
+      setShowCelebration(true);
+    }
+  }, [status]);
+
   const firstName = user?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'Explorer';
 
   return (
     <motion.div initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }} className="space-y-10">
+      {/* Post-Payment Celebration */}
+      <PostPaymentCelebration 
+        show={showCelebration} 
+        onDismiss={() => {
+          setShowCelebration(false);
+          resetStatus();
+        }} 
+      />
+
       {/* Hero */}
       <motion.section variants={cItem} className="relative rounded-3xl overflow-hidden p-8 md:p-12"
         style={{ background: 'linear-gradient(135deg, rgba(245,166,35,0.08) 0%, rgba(232,69,101,0.06) 50%, rgba(139,92,246,0.06) 100%)' }}>
@@ -90,6 +123,84 @@ export default function Dashboard() {
         </div>
       </motion.section>
 
+      {/* ── Hiring Pipeline Survival Simulator ── */}
+      <motion.section variants={cItem}>
+        <div className="flex items-center gap-2 mb-5">
+          <Activity className="w-5 h-5 text-warm-500" />
+          <h2 className="text-xl font-display font-bold text-bark">Hiring Pipeline Survival</h2>
+          <span className="text-xs bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full font-bold">Simulator</span>
+        </div>
+        <DashboardPipelineCards />
+      </motion.section>
+
+      {/* ── Premium Conversion Section (Free users only) ── */}
+      {!isPro && (
+        <motion.section variants={cItem}>
+          <PremiumConversionCard />
+        </motion.section>
+      )}
+
+      {/* ── Blurred Premium Preview (Free users only) ── */}
+      {!isPro && (
+        <motion.section variants={cItem}>
+          <div className="flex items-center gap-2 mb-5">
+            <Lock className="w-5 h-5 text-warm-400" />
+            <h2 className="text-xl font-display font-bold text-bark">Premium Insights Preview</h2>
+            <span className="text-xs bg-warm-50 text-warm-700 border border-warm-200 px-2 py-0.5 rounded-full font-bold">Pro</span>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {BLURRED_PREMIUM_SECTIONS.map((section, i) => {
+              const Icon = section.icon;
+              return (
+                <motion.div
+                  key={section.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.06 }}
+                  className="relative overflow-hidden rounded-2xl border border-warm-100 bg-white p-5"
+                >
+                  {/* Blurred content */}
+                  <div className="pointer-events-none select-none blur-[3px] opacity-60">
+                    <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${section.bg}`}>
+                      <Icon className={`h-4.5 w-4.5 ${section.color}`} />
+                    </div>
+                    <h4 className="text-sm font-display font-bold text-bark mb-1">{section.title}</h4>
+                    <p className="text-xs text-dusk">{section.desc}</p>
+                  </div>
+                  {/* Lock overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/40 backdrop-blur-[1px]">
+                    <div className="flex items-center gap-1.5 rounded-full border border-warm-200 bg-white px-3 py-1.5 text-xs font-bold text-dusk shadow-sm">
+                      <LockKeyhole className="h-3 w-3 text-warm-400" />
+                      Pro
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+      )}
+
+      {/* ── Pro Active Banner (Pro users) ── */}
+      {isPro && (
+        <motion.section variants={cItem}>
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="rounded-3xl border border-green-100 bg-green-50/50 p-6 shadow-sm"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-green-100">
+                <Sparkles className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-bark">Pro Intelligence Active</h3>
+                <p className="text-sm text-dusk">Diagnosis, skill gaps, simulations, and action plans are unlocked.</p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.section>
+      )}
+
       {/* Module grid */}
       <motion.section variants={cItem}>
         <div className="flex items-center gap-2 mb-5">
@@ -101,10 +212,17 @@ export default function Dashboard() {
           {modules.map((m, i) => (
             <motion.div key={m.to} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.05 }}>
               <Link to={m.to} className={`group block rounded-2xl p-5 bg-gradient-to-br ${m.gradient} border border-white/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 relative overflow-hidden`}>
-                {m.badge && (
+                {(() => {
+                  const locked = !!m.feature && getFeatureGate(m.feature).isLocked;
+                  return locked ? (
+                    <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full border border-bark/10 bg-white/80 px-1.5 py-0.5 text-[10px] font-black text-bark">
+                      <LockKeyhole className="w-3 h-3" /> Pro
+                    </span>
+                  ) : m.badge ? (
                   <span className={`absolute top-3 right-3 text-[10px] font-black px-1.5 py-0.5 rounded-full ${m.badge === 'New' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-warm-100 text-warm-700 border border-warm-200'
                     }`}>{m.badge}</span>
-                )}
+                  ) : null;
+                })()}
                 <div className={`w-10 h-10 rounded-xl ${m.iconBg} flex items-center justify-center mb-4 transition-transform group-hover:scale-110`}>
                   <m.icon className={`w-5 h-5 ${m.iconColor}`} />
                 </div>

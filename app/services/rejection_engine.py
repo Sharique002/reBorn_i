@@ -30,7 +30,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from app.config.prompt_templates import REJECTION_EXPLANATION_PROMPT
 from app.config.scoring_weights import (
     DEFAULT_EXPERIENCE_CONFIG,
-    DEFAULT_REJECTION_WEIGHTS,
     DEFAULT_TECH_WEIGHTS,
     DEFAULT_NONTECH_WEIGHTS,
     DEFAULT_TECH_ATS_WEIGHTS,
