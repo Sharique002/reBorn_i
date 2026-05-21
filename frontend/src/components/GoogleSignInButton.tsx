@@ -22,7 +22,7 @@ declare global {
 }
 
 // Google Client ID from environment or hardcoded for dev
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '253052508803-hh2u37u4udhvjkge92ibh2nbrr75i3ou.apps.googleusercontent.com';
 
 interface GoogleSignInButtonProps {
   onError?: (message: string) => void;
