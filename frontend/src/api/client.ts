@@ -22,9 +22,20 @@ import type {
   SubscriptionStatusResponse,
 } from '../types';
 
-const apiBase = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/v1`
-  : '/api/v1';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api/v1`;
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return 'https://reborni-backend.onrender.com/api/v1';
+    }
+  }
+  return '/api/v1';
+};
+
+const apiBase = getApiBase();
 
 const api = axios.create({
   baseURL: apiBase,
