@@ -56,7 +56,7 @@ Upload your resume, paste a job description, and get:
 │                     API Gateway (FastAPI async)                      │
 │  /auth · /resume · /analysis · /market · /simulation · /blueprint   │
 │  /hiring-pipeline · /payment · /subscription · /health              │
-│  Deployed on: Render (https://reborni-backend.onrender.com)         │
+│  Deployed on: Render (https://reborn-i-bxz3.onrender.com)          │
 ├─────────────────────────────────────────────────────────────────────┤
 │                        Service Layer                                │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │

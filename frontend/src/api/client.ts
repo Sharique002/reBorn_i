@@ -29,7 +29,7 @@ const getApiBase = () => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return 'https://reborni-backend.onrender.com/api/v1';
+      return 'https://reborn-i-bxz3.onrender.com/api/v1';
     }
   }
   return '/api/v1';
