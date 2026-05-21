@@ -354,15 +354,51 @@ The frontend will run at `http://localhost:5173`.
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `ENVIRONMENT` | `development` | App context (development / staging / production) |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./reborn_dev.db` | Data Source Name |
-| `JWT_SECRET_KEY` | — | Secret phrase for authenticating JWT signatures |
-| `FRONTEND_URL` | `http://localhost:5173` | Allowed origin address of client UI |
-| `OPENAI_API_KEY` | — | Optional OpenAI developer key |
-| `RAZORPAY_KEY_ID` | — | Razorpay payment merchant key identifier |
-| `RAZORPAY_KEY_SECRET` | — | Razorpay verification credential signature |
+| Variable | Default | Scope | Description |
+|---|---|---|---|
+| `ENVIRONMENT` | `development` | Backend | App context (`development` / `staging` / `production`) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./reborn_dev.db` | Backend | Database URL (SQLite locally, PostgreSQL in production) |
+| `JWT_SECRET_KEY` | — | Backend | Secret phrase for signing JWT tokens |
+| `GOOGLE_CLIENT_ID` | — | Backend | Google OAuth Client ID for server-side verification |
+| `VITE_GOOGLE_CLIENT_ID` | — | Frontend | Google OAuth Client ID for rendering sign-in button |
+| `FRONTEND_URL` | `http://localhost:5173` | Backend | CORS-allowed origin address of client UI |
+| `VITE_API_URL` | — | Frontend | Production backend URL (empty/relative in development) |
+| `OPENAI_API_KEY` | — | Backend | Optional OpenAI developer key |
+| `RAZORPAY_KEY_ID` | — | Backend | Razorpay payment merchant key identifier |
+| `RAZORPAY_KEY_SECRET` | — | Backend | Razorpay verification credential signature |
+| `VITE_RAZORPAY_KEY` | — | Frontend | Razorpay checkout key ID |
+
+---
+
+## Google OAuth Setup
+
+Google Sign-In requires registering the client ID in the Google Cloud Console and adding your deployment and development URLs to the **Authorized JavaScript Origins** list. If this is not configured, clicking the Google login button will show **Error 400: origin_mismatch**.
+
+### Step-by-Step Configuration
+
+1. **Access Google Cloud Console**:
+   - Open the [Google Cloud Console Credentials Page](https://console.cloud.google.com/apis/credentials).
+   - Select the project associated with your Google Client ID (or create a new project).
+
+2. **Edit OAuth 2.0 Client ID**:
+   - Under **OAuth 2.0 Client IDs**, find your client ID (e.g. `253052508803-hh2u37u4udhvjkge92ibh2nbrr75i3ou.apps.googleusercontent.com`) and click the **Pencil icon** to edit.
+
+3. **Configure Authorized JavaScript Origins**:
+   - Scroll down to the **Authorized JavaScript origins** section.
+   - Add the following exact origins (no trailing slashes):
+     - `http://localhost:5173` (for local frontend development)
+     - `http://localhost:5174` (fallback local port)
+     - `https://re-born-i.vercel.app` (your production frontend deployment)
+     - *(Optional)* Any custom domains or Vercel preview domain URLs.
+
+4. **Save and Propagate**:
+   - Click **Save** at the bottom of the page.
+   - **Crucial**: Google's servers take about 5–10 minutes to propagate credentials. After updating, perform a hard refresh (`Ctrl + F5` or `Cmd + Shift + R`) on the web app before trying to sign in.
+
+5. **Production Deployment variables**:
+   - Ensure you define the environment variables in your deployment dashboards:
+     - On **Vercel** (Frontend): Add `VITE_GOOGLE_CLIENT_ID = <your_client_id>`
+     - On **Render** (Backend): Add `GOOGLE_CLIENT_ID = <your_client_id>`
 
 ---
 
