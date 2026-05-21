@@ -436,5 +436,5 @@ Private / Internal use.
 ---
 
 <p align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/Sharique002">Sharique</a></sub>
+  <sub>Built with ❤️ by <a href="https://github.com/Sharique002">Sharique Hussain</a></sub>
 </p>
