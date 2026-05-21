@@ -94,17 +94,26 @@ def create_app() -> FastAPI:
     )
 
     # ── CORS Middleware ──────────────────────────────────────
-    if settings.CORS_ORIGINS == "*":
-        origins = ["*"]
-    else:
-        origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
-    if settings.FRONTEND_URL and origins != ["*"]:
-        frontend = settings.FRONTEND_URL.rstrip("/")
+    origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "https://re-born-i.vercel.app",
+    ]
+    if settings.CORS_ORIGINS and settings.CORS_ORIGINS != "*":
+        for o in settings.CORS_ORIGINS.split(","):
+            o_clean = o.strip().rstrip("/")
+            if o_clean and o_clean not in origins:
+                origins.append(o_clean)
+    if settings.FRONTEND_URL:
+        frontend = settings.FRONTEND_URL.strip().rstrip("/")
         if frontend and frontend not in origins:
             origins.append(frontend)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
+        allow_origin_regex="https://.*\\.vercel\\.app",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
